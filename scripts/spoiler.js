@@ -7,6 +7,7 @@ const request = require('request-promise-native');
 const getStream = require('get-stream');
 
 const defaultText = '(spoiler, fils de pute)';
+const maxWidth = 400;
 const font = '15px Helvetica Neue,Helvetica,Arial,sans-serif';
 const lineHeight = 20;
 function spoilerGif(text) {
@@ -16,7 +17,6 @@ function spoilerGif(text) {
 
 	// Compute size
 	ctx.font = font;
-	let maxWidth = 600;
 	// 36 for the 'gif' size + 5 extra padding
 	let width = ctx.measureText(defaultText).width + 41;
 	let lines = [];
@@ -50,7 +50,6 @@ function spoilerGif(text) {
 	c.height = h;
 	let encoder = new GIFEncoder(w, h);
 
-	// let prom = getStream.buffer(encoder.createReadStream(), { encoding: 'binary' });
 	let stream = encoder.createReadStream();
 
 	let cfrom = new Canvas(w, h);
@@ -98,20 +97,6 @@ function spoilerGif(text) {
 	encoder.finish();
 
 	return stream;
-	// return prom.then(buffer => (
-	// 	request.post({
-	// 		url: 'https://api.imgur.com/3/image',
-	// 		headers: {
-	// 			Authorization: 'Client-ID ' + config.imgurClient
-	// 		},
-	// 		json: true,
-	// 		formData: {
-	// 			type: 'base64',
-	// 			name: 'spoiler.gif',
-	// 			image: buffer.toString('base64')
-	// 		}
-	// 	})
-	// )).then(r => r && r.data && r.data.link);
 }
 
 function createBin(content) {
@@ -142,8 +127,8 @@ module.exports = function(message, content) {
 	return createBin(content).then(pasteUrl => {
 		const embed = new Discord.RichEmbed()
 			.setTitle('Spoiler (clique là pour la version texte)')
-			.setURL(pasteUrl || 'http://monpremiersiteinternet.com');
-		// if (imgUrl) embed.setImage(imgUrl);
-		return message.reply({ embed, files: [ new Discord.Attachment(spoilerGif(content), 'spoiler.gif') ] });
+			.setURL(pasteUrl || 'http://monpremiersiteinternet.com')
+			.attachFile(new Discord.Attachment(spoilerGif(content), 'spoiler.gif'));
+		return message.reply({ embed });
 	});
 };
