@@ -61,9 +61,9 @@ function spoilerGif(text) {
 	to.font = font;
 	from.textBaseline = 'top';
 	to.textBaseline = 'top';
-	to.fillStyle = '#32363b';
+	to.fillStyle = '#36393e';
 	to.fillRect(0, 0, w, h);
-	from.fillStyle = '#32363b';
+	from.fillStyle = '#36393e';
 	from.fillRect(0, 0, w, h);
 	from.fillStyle = 'rgba(255, 255, 255, 0.5)';
 	to.fillStyle = 'rgba(255, 255, 255, 0.7)';
@@ -125,10 +125,8 @@ module.exports = function(message, content) {
 	if (!content) return;
 	message.delete();
 	return createBin(content).then(pasteUrl => {
-		const embed = new Discord.RichEmbed()
-			.setTitle('Spoiler (clique là pour la version texte)')
-			.setURL(pasteUrl || 'http://monpremiersiteinternet.com')
-			.attachFile(new Discord.Attachment(spoilerGif(content), 'spoiler.gif'));
-		return message.reply({ embed });
+		return message.reply('(version texte: <'+pasteUrl+'>)', {
+			files: [ new Discord.Attachment(spoilerGif(content), 'spoiler.gif') ]
+		});
 	});
 };
