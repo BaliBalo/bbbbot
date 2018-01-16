@@ -6,7 +6,7 @@ const Canvas = require('canvas');
 const request = require('request-promise-native');
 const getStream = require('get-stream');
 
-const defaultText = '(spoiler, fils de pute)';
+const defaultText = '(spoiler, trou du cul)';
 const maxWidth = 400;
 const font = '15px Helvetica Neue,Helvetica,Arial,sans-serif';
 const lineHeight = 20;
