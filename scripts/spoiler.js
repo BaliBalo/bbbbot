@@ -112,12 +112,12 @@ function spoilerGif(text) {
 
 module.exports = function(message, content) {
 	if (!content) return;
-	message.edit('!spoiler');
+	message.delete();
 	spoilerGif(content).then(url => {
 		const embed = new Discord.RichEmbed()
 			.setTitle('Spoiler')
 			.setURL('https://google.com');
 		if (url) embed.setImage(url);
-		message.edit({ embed });
+		message.reply({ embed });
 	});
 };
