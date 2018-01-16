@@ -18,7 +18,6 @@ let count = 4;
 let fullSize = 128;
 let smallSize = fullSize / count;
 let size = fullSize + (count + 1) * padding;
-let ctx = canvas.getContext('2d');
 let getImage = new Promise((res, rej) => {
 	fs.readFileSync(path.join(__dirname, 'full.png'), (err, res) => {
 		if (err) return rej(err);
@@ -34,6 +33,7 @@ function scramble() {
 	let order = shuffle([...Array(count * count)].map((e, i) => i));
 	return getImage.then(img => {
 		let canvas = new Canvas(size, size);
+		let ctx = canvas.getContext('2d');
 		order.forEach((src, dest) => {
 			let sx = src % count, sy = ~~(src / count);
 			let dx = dest % count, dy = ~~(dest / count);
