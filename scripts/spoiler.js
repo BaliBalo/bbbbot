@@ -1,3 +1,5 @@
+const config = require('../config.json');
+
 const Discord = require('discord.js');
 const GIFEncoder = require('gifencoder');
 const Canvas = require('canvas');
@@ -59,9 +61,9 @@ function spoilerGif(text) {
 	to.font = font;
 	from.textBaseline = 'top';
 	to.textBaseline = 'top';
-	to.fillStyle = '#36393e';
+	to.fillStyle = '#32363b';
 	to.fillRect(0, 0, w, h);
-	from.fillStyle = '#36393e';
+	from.fillStyle = '#32363b';
 	from.fillRect(0, 0, w, h);
 	from.fillStyle = 'rgba(255, 255, 255, 0.5)';
 	to.fillStyle = 'rgba(255, 255, 255, 0.7)';
@@ -98,7 +100,7 @@ function spoilerGif(text) {
 		request.post({
 			url: 'https://api.imgur.com/3/image',
 			headers: {
-				Authorization: 'Client-ID 365facd888ebe57'
+				Authorization: 'Client-ID ' + config.imgurClient
 			},
 			json: true,
 			formData: {
@@ -110,14 +112,38 @@ function spoilerGif(text) {
 	)).then(r => r && r.data && r.data.link);
 }
 
+function createBin(content) {
+	return request.post({
+		url: 'https://pastebin.com/api/api_post.php',
+		form: {
+			api_option: 'paste',
+			api_dev_key: config.pastebinKey,
+			api_paste_code: content,
+			api_paste_name: 'Spoiler',
+			api_paste_private: 1,
+			api_paste_expire_date: 'N',
+			api_paste_format: 'text',
+			api_user_key: ''
+		}
+	}).then(res => {
+		if (!res.startsWith('http')) {
+			console.log('Error uploading to pastebin', res);
+			return '';
+		}
+		return res;
+	});
+}
+
 module.exports = function(message, content) {
 	if (!content) return;
 	message.delete();
-	spoilerGif(content).then(url => {
-		const embed = new Discord.RichEmbed()
-			.setTitle('Spoiler')
-			.setURL('https://google.com');
-		if (url) embed.setImage(url);
-		message.reply({ embed });
+	return spoilerGif(content).then(imgUrl => {
+		return createBin(content).then(pasteUrl => {
+			const embed = new Discord.RichEmbed()
+				.setTitle('Spoiler (clique là pour la version texte)')
+				.setURL(pasteUrl || 'http://monpremiersiteinternet.com');
+			if (url) embed.setImage(url);
+			return message.reply({ embed });
+		});
 	});
 };
