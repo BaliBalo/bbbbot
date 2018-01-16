@@ -3,6 +3,8 @@ const path = require('path');
 const Canvas = require('canvas');
 const Image = Canvas.Image;
 
+const Discord = require('discord.js');
+
 function shuffle(a) {
 	let j, x, i;
 	for (i = a.length - 1; i > 0; i--) {
@@ -11,6 +13,7 @@ function shuffle(a) {
 		a[i] = a[j];
 		a[j] = x;
 	}
+	return a;
 }
 
 let padding = 2;
@@ -19,9 +22,9 @@ let fullSize = 128;
 let smallSize = fullSize / count;
 let size = fullSize + (count + 1) * padding;
 let getImage = new Promise((res, rej) => {
-	fs.readFileSync(path.join(__dirname, 'full.png'), (err, res) => {
+	fs.readFile(path.join(__dirname, 'full.png'), (err, data) => {
 		if (err) return rej(err);
-		res(res);
+		res(data);
 	});
 }).then(src => {
 	let img = new Image();
@@ -32,12 +35,12 @@ let getImage = new Promise((res, rej) => {
 function scramble() {
 	let order = shuffle([...Array(count * count)].map((e, i) => i));
 	return getImage.then(img => {
-		let canvas = new Canvas(size, size);
+		let canvas = new Canvas(fullSize + (count + 1) * padding, fullSize + (count - 1) * padding);
 		let ctx = canvas.getContext('2d');
 		order.forEach((src, dest) => {
 			let sx = src % count, sy = ~~(src / count);
 			let dx = dest % count, dy = ~~(dest / count);
-			ctx.drawImage(img, sx * smallSize, sy * smallSize, smallSize, smallSize, padding + dx * (smallSize + padding), padding + dy * (smallSize + padding), smallSize, smallSize);
+			ctx.drawImage(img, sx * smallSize, sy * smallSize, smallSize, smallSize, padding + dx * (smallSize + padding), dy * (smallSize + padding), smallSize, smallSize);
 		});
 		return canvas.createPNGStream();
 	});
