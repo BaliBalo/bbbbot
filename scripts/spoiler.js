@@ -139,13 +139,11 @@ function createBin(content) {
 module.exports = function(message, content) {
 	if (!content) return;
 	message.delete();
-	return spoilerGif(content).then(gif => {
-		return createBin(content).then(pasteUrl => {
-			const embed = new Discord.RichEmbed()
-				.setTitle('Spoiler (clique là pour la version texte)')
-				.setURL(pasteUrl || 'http://monpremiersiteinternet.com');
-			// if (imgUrl) embed.setImage(imgUrl);
-			return message.reply({ embed, files: [ new Discord.Attachment(gif, 'spoiler.gif') ] });
-		});
+	return createBin(content).then(pasteUrl => {
+		const embed = new Discord.RichEmbed()
+			.setTitle('Spoiler (clique là pour la version texte)')
+			.setURL(pasteUrl || 'http://monpremiersiteinternet.com');
+		// if (imgUrl) embed.setImage(imgUrl);
+		return message.reply({ embed, files: [ new Discord.Attachment(spoilerGif(content), 'spoiler.gif') ] });
 	});
 };
