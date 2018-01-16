@@ -50,7 +50,8 @@ function spoilerGif(text) {
 	c.height = h;
 	let encoder = new GIFEncoder(w, h);
 
-	let prom = getStream.buffer(encoder.createReadStream(), { encoding: 'binary' });
+	// let prom = getStream.buffer(encoder.createReadStream(), { encoding: 'binary' });
+	let stream = encoder.createReadStream();
 
 	let cfrom = new Canvas(w, h);
 	let cto = new Canvas(w, h);
@@ -96,20 +97,21 @@ function spoilerGif(text) {
 
 	encoder.finish();
 
-	return prom.then(buffer => (
-		request.post({
-			url: 'https://api.imgur.com/3/image',
-			headers: {
-				Authorization: 'Client-ID ' + config.imgurClient
-			},
-			json: true,
-			formData: {
-				type: 'base64',
-				name: 'spoiler.gif',
-				image: buffer.toString('base64')
-			}
-		})
-	)).then(r => r && r.data && r.data.link);
+	return stream;
+	// return prom.then(buffer => (
+	// 	request.post({
+	// 		url: 'https://api.imgur.com/3/image',
+	// 		headers: {
+	// 			Authorization: 'Client-ID ' + config.imgurClient
+	// 		},
+	// 		json: true,
+	// 		formData: {
+	// 			type: 'base64',
+	// 			name: 'spoiler.gif',
+	// 			image: buffer.toString('base64')
+	// 		}
+	// 	})
+	// )).then(r => r && r.data && r.data.link);
 }
 
 function createBin(content) {
@@ -137,13 +139,13 @@ function createBin(content) {
 module.exports = function(message, content) {
 	if (!content) return;
 	message.delete();
-	return spoilerGif(content).then(imgUrl => {
+	return spoilerGif(content).then(gif => {
 		return createBin(content).then(pasteUrl => {
 			const embed = new Discord.RichEmbed()
 				.setTitle('Spoiler (clique là pour la version texte)')
 				.setURL(pasteUrl || 'http://monpremiersiteinternet.com');
-			if (imgUrl) embed.setImage(imgUrl);
-			return message.reply({ embed });
+			// if (imgUrl) embed.setImage(imgUrl);
+			return message.reply({ embed, files: [ new Discord.Attachment(gif, 'spoiler.gif') ] });
 		});
 	});
 };
