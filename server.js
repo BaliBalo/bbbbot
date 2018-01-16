@@ -2,7 +2,8 @@ const config = require('./config.json');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-const spoiler = require('./scripts/spoiler.js');
+const spoiler = require('./scripts/spoiler');
+const mixu = require('./scripts/mixu');
 
 let pad2 = n => ('0' + n).slice(-2);
 let ts = (d = new Date()) => {
@@ -16,9 +17,9 @@ client.on('ready', () => {
 });
 
 client.on('message', message => {
-	// if (message.content === '!mixu') {
-	//
-	// }
+	if (message.content.startsWith('!mixu')) {
+		return mixu(message);
+	}
 	if (message.content.startsWith('!spoiler')) {
 		let content = message.content.slice(9).trim();
 		return spoiler(message, content);
