@@ -99,32 +99,45 @@ function spoilerGif(text) {
 	return stream;
 }
 
-function createBin(content) {
+function uploadFile(content) {
 	return request.post({
-		url: 'https://pastebin.com/api/api_post.php',
-		form: {
-			api_option: 'paste',
-			api_dev_key: config.pastebinKey,
-			api_paste_code: content,
-			api_paste_name: 'Spoiler',
-			api_paste_private: 1,
-			api_paste_expire_date: 'N',
-			api_paste_format: 'text',
-			api_user_key: ''
+		url: 'http://api.textuploader.com/v1/posts',
+		headers: {
+			'X-TextUploader-API-Key': config.textuploaderKey
+		},
+		json: {
+			title: 'Spoiler',
+			content: content,
+			type: 'unlisted'
 		}
 	}).then(res => {
-		if (!res.startsWith('http')) {
-			console.log('Error uploading to pastebin', res);
-			return '';
-		}
-		return res;
+		return res && res.results && res.results[0] && res.results[0].shorturl;
 	});
+	// return request.post({
+	// 	url: 'https://pastebin.com/api/api_post.php',
+	// 	form: {
+	// 		api_option: 'paste',
+	// 		api_dev_key: config.pastebinKey,
+	// 		api_paste_code: content,
+	// 		api_paste_name: 'Spoiler',
+	// 		api_paste_private: 1,
+	// 		api_paste_expire_date: 'N',
+	// 		api_paste_format: 'text',
+	// 		api_user_key: ''
+	// 	}
+	// }).then(res => {
+	// 	if (!res.startsWith('http')) {
+	// 		console.log('Error uploading to pastebin', res);
+	// 		return '';
+	// 	}
+	// 	return res;
+	// });
 }
 
 module.exports = function(message, content) {
 	if (!content) return;
 	message.delete();
-	return createBin(content).then(pasteUrl => {
+	return uploadFile(content).then(pasteUrl => {
 		return message.reply('(version texte: <'+pasteUrl+'>)', {
 			files: [ new Discord.Attachment(spoilerGif(content), 'spoiler.gif') ]
 		});
