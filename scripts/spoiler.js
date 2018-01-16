@@ -142,7 +142,7 @@ module.exports = function(message, content) {
 			const embed = new Discord.RichEmbed()
 				.setTitle('Spoiler (clique là pour la version texte)')
 				.setURL(pasteUrl || 'http://monpremiersiteinternet.com');
-			if (url) embed.setImage(url);
+			if (imgUrl) embed.setImage(imgUrl);
 			return message.reply({ embed });
 		});
 	});
