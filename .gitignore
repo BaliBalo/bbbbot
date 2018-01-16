@@ -4,6 +4,9 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+config.json
+package-lock.json
+ignore/
 
 # Runtime data
 pids
@@ -56,4 +59,3 @@ typings/
 
 # dotenv environment variables file
 .env
-

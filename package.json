@@ -1,0 +1,28 @@
+{
+  "name": "bbbbot",
+  "version": "1.0.0",
+  "description": "Discord bot for ddddata",
+  "main": "server.js",
+  "dependencies": {
+    "canvas": "^1.6.9",
+    "discord.js": "^11.3.0",
+    "get-stream": "^3.0.0",
+    "gifencoder": "^1.1.0",
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BaliBalo/bbbbot.git"
+  },
+  "author": "Bali Balo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BaliBalo/bbbbot/issues"
+  },
+  "homepage": "https://github.com/BaliBalo/bbbbot#readme"
+}
