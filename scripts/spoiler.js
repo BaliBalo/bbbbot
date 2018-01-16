@@ -106,11 +106,11 @@ function spoilerGif(text) {
 				name: 'spoiler.gif',
 				image: buffer.toString('base64')
 			}
-		});
+		})
 	)).then(r => r && r.data && r.data.link);
 }
 
-modules.exports = function(message, content) {
+module.exports = function(message, content) {
 	if (!content) return;
 	message.edit('!spoiler');
 	spoilerGif(content).then(url => {

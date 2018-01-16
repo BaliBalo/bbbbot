@@ -2,7 +2,7 @@ const config = require('./config.json');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-const spoiler = require('scripts/spoiler.js');
+const spoiler = require('./scripts/spoiler.js');
 
 let pad2 = n => ('0' + n).slice(-2);
 let ts = (d = new Date()) => {
