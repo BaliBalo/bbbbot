@@ -28,7 +28,8 @@ function spoilerGif(text) {
 	to.textBaseline = 'middle';
 	to.fillStyle = '#36393e';
 	to.fillRect(0, 0, cto.width, cto.height);
-	to.fillStyle = 'rgba(255, 255, 255, 0.7)';
+	let defaultColor = 'rgba(255, 255, 255, 0.7)'
+	to.fillStyle = defaultColor;
 
 	// 36 for the 'gif' size + 5 extra padding
 	let fullWidth = to.measureText(defaultText).width + 41;
@@ -47,7 +48,7 @@ function spoilerGif(text) {
 		return left;
 	};
 	let nextToken = () => {
-		let token = text.match(/^(«««=([^» ]+)»»»|\s|\S+)/);
+		let token = text.match(/^(\[\[([^= ]*)=([^\] ]+)\]\]|\s|\S+)/);
 		token = token && token[0];
 		if (token) {
 			text = text.slice(token.length);
@@ -64,18 +65,24 @@ function spoilerGif(text) {
 			continue;
 		}
 
-		let iconMatch = token.match(/^«««=(.+)»»»$/);
-		if (iconMatch) {
-			let left = padding + updatePos(24);
-			let top = currentTop() - 10;
-			icons.push(request({
-				url: iconMatch[1],
-				encoding: null
-			}).then(src => {
-				let img = new Image();
-				img.src = src;
-				to.drawImage(img, left, top, 20, 20);
-			}));
+		let customCodeMatch = token.match(/^\[\[([^= ]*)=[^\] ].+)\]\]$/);
+		if (customCodeMatch) {
+			let type = customCodeMatch[1];
+			let value = customCodeMatch[2];
+			if (type === 'icon') {
+				let left = padding + updatePos(24);
+				let top = currentTop() - 10;
+				icons.push(request({
+					url: value,
+					encoding: null
+				}).then(src => {
+					let img = new Image();
+					img.src = src;
+					to.drawImage(img, left, top, 20, 20);
+				}));
+			} else if(type === 'color') {
+				to.fillStyle = value === 'reset' ? defaultColor : value;
+			}
 			continue;
 		}
 
@@ -137,19 +144,27 @@ module.exports = function(message, content) {
 	if (!content) return;
 	message.delete();
 
+	let emojis = message.guild.emojis;
 	// use mentions.USERS_PATTERN on next major (discord.js 12)
-	content = content
+	let imgContent = content
 		.replace(/<@!?(1|\d{17,19})>/g, (m, id) => {
 			let guildMember = message.mentions.members.get(id);
-			let avatar = '';
+			let prefix = '[[color='+guildMember.displayHexColor+']]';
+			let suffix = '[[color=reset]]';
 			if (guildMember.user.avatarURL) {
-				avatar = '«««='+guildMember.user.avatarURL+'»»»';
+				prefix = '[[icon=' + guildMember.user.avatarURL + ']]' + prefix;
 			}
 			return avatar + '@' + guildMember.displayName;
 		})
-		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name);
+		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name)
+		.replace(/<:[^: ]+:(\d+)>/g, (m, id) => '[[icon=https://cdn.discordapp.com/emojis/' + id + '.png]]');
 
-	return uploadFile(content.replace(/«««=([^» ]+)»»»/g, ''), message.id).then(pasteUrl => {
+	let textContent = content
+		.replace(/<@!?(1|\d{17,19})>/g, (m, id) => '@' + message.mentions.members.get(id).displayName)
+		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name)
+		.replace(/<:([^: ]+):\d+>/g, (m, name) => ':' + name + ':';
+
+	return uploadFile(content.replace(/\[\[([^= ]*)=([^\] ]+)\]\]/g, ''), message.id).then(pasteUrl => {
 		return spoilerGif(content).then(gif => {
 			return message.reply(pasteUrl ? '(version texte: <'+pasteUrl+'>)' : '', {
 				files: [ new Discord.Attachment(gif, 'spoiler.gif') ]
