@@ -92,12 +92,13 @@ function spoilerGif(text) {
 		let left = padding + updatePos(size);
 		to.fillText(token, left, currentTop());
 
-		if (currentLine >= maxLines) {
+		if (currentLine >= maxLines - 1) {
 			to.fillText('...', currentLeft, currentTop());
 			break;
 		}
 	}
 
+	console.log(token, currentLine, currentLeft);
 	let w = fullWidth + 2 * padding;
 	let h = Math.min((currentLine + 1) * lineHeight, maxHeight) + 2 * padding;
 
