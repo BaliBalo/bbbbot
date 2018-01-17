@@ -154,7 +154,7 @@ module.exports = function(message, content) {
 			if (guildMember.user.avatarURL) {
 				prefix = '[[icon=' + guildMember.user.avatarURL + ']]' + prefix;
 			}
-			return avatar + '@' + guildMember.displayName;
+			return prefix + '@' + guildMember.displayName + suffix;
 		})
 		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name)
 		.replace(/<:[^: ]+:(\d+)>/g, (m, id) => '[[icon=https://cdn.discordapp.com/emojis/' + id + '.png]]');
@@ -164,8 +164,8 @@ module.exports = function(message, content) {
 		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name)
 		.replace(/<:([^: ]+):\d+>/g, (m, name) => ':' + name + ':');
 
-	return uploadFile(content.replace(/\[\[([^= ]*)=([^\] ]+)\]\]/g, ''), message.id).then(pasteUrl => {
-		return spoilerGif(content).then(gif => {
+	return uploadFile(textContent.replace(/\[\[([^= ]*)=([^\] ]+)\]\]/g, ''), message.id).then(pasteUrl => {
+		return spoilerGif(imgContent).then(gif => {
 			return message.reply(pasteUrl ? '(version texte: <'+pasteUrl+'>)' : '', {
 				files: [ new Discord.Attachment(gif, 'spoiler.gif') ]
 			});
