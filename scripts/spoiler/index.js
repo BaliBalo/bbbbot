@@ -81,11 +81,14 @@ function spoilerGif(text) {
 		let left = padding + updatePos(size);
 		to.fillText(token, left, currentTop());
 
-		if (currentLine >= 20) break
+		if (currentLine >= 20) {
+			to.fillText('...', currentLeft, currentTop());
+			break;
+		}
 	}
 
 	let w = fullWidth + 2 * padding;
-	let h = currentLine * lineHeight + 2 * padding;
+	let h = (currentLine + 1) * lineHeight + 2 * padding;
 
 	return Promise.all(icons).then(() => {
 		c.width = w;
