@@ -1,4 +1,4 @@
-const config = require('../config.json');
+const config = require('../../config.json');
 const fs = require('fs');
 const path = require('path');
 const transitions = require('./transitions');
@@ -55,7 +55,8 @@ function spoilerGif(text) {
 	};
 	let currentTop = () => padding + lineHeight * (currentLine + .5);
 
-	while (let token = nextToken()) {
+	let token;
+	while (token = nextToken()) {
 		if (token === '\n') {
 			currentLine++;
 			currentLeft = 0;
