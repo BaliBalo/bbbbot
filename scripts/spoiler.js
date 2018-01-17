@@ -162,11 +162,12 @@ module.exports = function(message, content) {
 	content = content
 		.replace(/<@!?(1|\d{17,19})>/g, (m, id) => {
 			let user = message.mentions.members.get(id);
+			let name = user.nickname || user.user.username;
 			let avatar = '';
-			if (user.avatarURL) {
-				avatar = '«««='+user.avatarURL+'»»»';
+			if (user.user.avatarURL) {
+				avatar = '«««='+user.user.avatarURL+'»»»';
 			}
-			return avatar + '@' + user.username;
+			return avatar + '@' + name;
 		})
 		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).username);
 
