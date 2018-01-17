@@ -1,6 +1,8 @@
 const config = require('../config.json');
 const fs = require('fs');
 const path = require('path');
+const transitions = require('./transitions');
+const transList = Object.values(transitions);
 
 const Discord = require('discord.js');
 const GIFEncoder = require('gifencoder');
@@ -10,62 +12,82 @@ const request = require('request-promise-native');
 const getStream = require('get-stream');
 
 const defaultText = '(spoiler, trou du cul)';
-const maxWidth = 400;
+const maxWidth = 390;
+const padding = 5;
 const font = '15px Helvetica Neue,Helvetica,Arial,sans-serif';
 const lineHeight = 20;
 function spoilerGif(text) {
-	text = text.split('\n');
+	// text = text.split('\n');
 	let c = new Canvas(320, 240);
 	let ctx = c.getContext('2d');
 
-	// Compute size
-	ctx.font = font;
+	let cto = new Canvas(maxWidth + 2 * padding, 20 * lineHeight);
+	let to = cto.getContext('2d');
+	to.font = font;
+	to.textBaseline = 'middle';
+	to.fillStyle = '#36393e';
+	to.fillRect(0, 0, cto.width, cto.height);
+	to.fillStyle = 'rgba(255, 255, 255, 0.7)';
+
 	// 36 for the 'gif' size + 5 extra padding
-	let width = ctx.measureText(defaultText).width + 41;
-	let lines = [];
+	let fullWidth = to.measureText(defaultText).width + 41;
 	let icons = [];
-	text.forEach(src => {
-		src = src.split(' ');
-		let line = '';
-		let size = 0;
-		while (src.length) {
-			let icon;
-			let elem = src.shift().replace(/^«««=([^» ]+)»»»(.+)$/, (r, url, msg) => {
-				icon = url;
-				return msg + '  ';
-			});
-			let newLine = line + (line ? ' ' : '') + elem;
-			let iSize = ctx.measureText(newLine).width;
-			if (line && iSize > maxWidth) {
-				lines.push(line);
-				width = Math.max(width, size);
-				line = elem;
-				size = ctx.measureText(line).width;
-			} else {
-				line = newLine;
-				size = iSize;
-			}
-			if (icon) {
-				icons.push({
-					line: lines.length,
-					left: size - 16,
-					url: icon
-				});
-			}
+	let currentLine = 0;
+	let currentLeft = 0;
+	let updatePos = width => {
+		let left = currentLeft;
+		if (left + width > maxWidth) {
+			fullWidth = Math.max(fullWidth, Math.min(currentLeft, maxWidth));
+			if (currentLeft) currentLine++;
+			currentLeft = width;
+			return 0;
 		}
-		lines.push(line);
-		width = Math.max(width, size);
-	});
-	lines = lines.slice(0, 20);
+		currentLeft += width;
+		return left;
+	};
+	let nextToken = () => {
+		let token = txt.match(/^(«««=([^» ]+)»»»|\s|\S+)/);
+		token = token && token[0];
+		if (token) {
+			txt = txt.slice(token.length);
+		}
+		return token;
+	};
+	let currentTop = () => padding + lineHeight * (currentLine + .5);
 
-	return Promise.all(icons.map(icon => request({
-		url: icon.url,
-		encoding: null
-	}))).then(images => {
-		let padding = 5;
-		let w = width + 2 * padding;
-		let h = lines.length * lineHeight + 2 * padding;
+	while (let token = nextToken()) {
+		if (token === '\n') {
+			currentLine++;
+			currentLeft = 0;
+			continue;
+		}
 
+		let iconMatch = token.match(/^«««=(.+)»»»$/);
+		if (iconMatch) {
+			let left = padding + updatePos(18) + 1;
+			let top = currentTop() - 8;
+			icons.push(request({
+				url: iconMatch[1],
+				encoding: null
+			}).then(src => {
+				let img = new Image();
+				img.src = src;
+				to.drawImage(img, left, top, 16, 16);
+			}));
+			continue;
+		}
+
+		let size = to.measureText(token).width;
+		let left = padding + updatePos(size);
+		to.fillText(token, left, currentTop());
+
+		if (currentLine >= 20) break
+	}
+
+	let w = fullWidth + 2 * padding;
+	let h = currentLine * lineHeight + 2 * padding;
+
+	return Promise.all(icons).then(() => {
 		c.width = w;
 		c.height = h;
 		let encoder = new GIFEncoder(w, h);
@@ -73,51 +95,20 @@ function spoilerGif(text) {
 		let stream = encoder.createReadStream();
 
 		let cfrom = new Canvas(w, h);
-		let cto = new Canvas(w, h);
 		let from = cfrom.getContext('2d');
-		let to = cto.getContext('2d');
-
 		from.font = font;
-		to.font = font;
 		from.textBaseline = 'middle';
-		to.textBaseline = 'middle';
-		to.fillStyle = '#36393e';
-		to.fillRect(0, 0, w, h);
 		from.fillStyle = '#36393e';
 		from.fillRect(0, 0, w, h);
 		from.fillStyle = 'rgba(255, 255, 255, 0.5)';
-		to.fillStyle = 'rgba(255, 255, 255, 0.7)';
 		from.fillText(defaultText, padding, padding + lineHeight * .5);
-		lines.forEach((line, i) => to.fillText(line, padding, padding + lineHeight * (i + .5)));
-		icons.forEach((icon, i) => {
-			let img = new Image();
-			img.src = images[i];
-			to.drawImage(img, icon.left, padding + lineHeight * (icon.line + .5) - 8, 16, 16);
-		});
 
 		encoder.start();
 		encoder.setRepeat(-1);
 		encoder.setDelay(20);
 
-		let bandSize = 10;
-		let duration = 40;
-		let bandDuration = .4;
-		let easing = t => t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1;
-		function frame(i) {
-			let p = i / (duration - 1);
-			for (let l = 0; l < w; l += bandSize) {
-				let bandFrom = (1 - bandDuration) * l / w;
-				let bandProgress = Math.min(Math.max((p - bandFrom) / bandDuration, 0), 1);
-				bandProgress = easing(bandProgress);
-				let y = -bandProgress * h;
-				ctx.drawImage(cfrom, l, 0, bandSize, h, l, y, bandSize, h);
-				ctx.drawImage(cto, l, 0, bandSize, h, l, y + h, bandSize, h);
-			}
-			encoder.addFrame(ctx);
-		}
-		for (let i = 0; i < duration; i++) {
-			frame(i);
-		}
+		let tid = ~~(Math.random() * transList.length);
+		transList[tid](ctx, cfrom, cto, () => encoder.addFrame(ctx));
 
 		encoder.finish();
 
