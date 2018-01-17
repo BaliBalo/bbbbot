@@ -50,7 +50,7 @@ function spoilerGif(text) {
 		return left;
 	};
 	let nextToken = () => {
-		let token = text.match(new RegExp('^(.*?)('+customCode+'|\s)'));
+		let token = text.match(new RegExp('^(.*?)('+customCode+'|\\s|$)'));
 		token = token && (token[1] || token[2]);
 		if (token) {
 			text = text.slice(token.length);
@@ -98,7 +98,6 @@ function spoilerGif(text) {
 		}
 	}
 
-	console.log(token, currentLine, currentLeft);
 	let w = fullWidth + 2 * padding;
 	let h = Math.min((currentLine + 1) * lineHeight, maxHeight) + 2 * padding;
 
