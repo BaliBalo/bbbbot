@@ -162,7 +162,7 @@ module.exports = function(message, content) {
 	let textContent = content
 		.replace(/<@!?(1|\d{17,19})>/g, (m, id) => '@' + message.mentions.members.get(id).displayName)
 		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name)
-		.replace(/<:([^: ]+):\d+>/g, (m, name) => ':' + name + ':';
+		.replace(/<:([^: ]+):\d+>/g, (m, name) => ':' + name + ':');
 
 	return uploadFile(content.replace(/\[\[([^= ]*)=([^\] ]+)\]\]/g, ''), message.id).then(pasteUrl => {
 		return spoilerGif(content).then(gif => {
