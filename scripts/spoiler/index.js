@@ -11,6 +11,8 @@ const Image = Canvas.Image;
 const request = require('request-promise-native');
 const getStream = require('get-stream');
 
+const customCode = '\[\[([^= ]*)=([^\] ]+)\]\]';
+
 const defaultText = '(spoiler, trou du cul)';
 const maxWidth = 390;
 const maxHeight = 290;
@@ -48,8 +50,8 @@ function spoilerGif(text) {
 		return left;
 	};
 	let nextToken = () => {
-		let token = text.match(/^(\[\[([^= ]*)=([^\] ]+)\]\]|\s|\S+)/);
-		token = token && token[0];
+		let token = text.match(new RegExp('^(.*?)('+customCode+'|\s)'));
+		token = token && (token[1] || token[2]);
 		if (token) {
 			text = text.slice(token.length);
 		}
@@ -65,7 +67,7 @@ function spoilerGif(text) {
 			continue;
 		}
 
-		let customCodeMatch = token.match(/^\[\[([^= ]*)=([^\] ]+)\]\]$/);
+		let customCodeMatch = token.match(new RegExp('^'+customCode+'$'));
 		if (customCodeMatch) {
 			let type = customCodeMatch[1];
 			let value = customCodeMatch[2];
@@ -162,9 +164,10 @@ module.exports = function(message, content) {
 	let textContent = content
 		.replace(/<@!?(1|\d{17,19})>/g, (m, id) => '@' + message.mentions.members.get(id).displayName)
 		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name)
-		.replace(/<:([^: ]+):\d+>/g, (m, name) => ':' + name + ':');
+		.replace(/<:([^: ]+):\d+>/g, (m, name) => ':' + name + ':')
+		.replace(new RegExp(customCode, 'g'), '');
 
-	return uploadFile(textContent.replace(/\[\[([^= ]*)=([^\] ]+)\]\]/g, ''), message.id).then(pasteUrl => {
+	return uploadFile(textContent, message.id).then(pasteUrl => {
 		return spoilerGif(imgContent).then(gif => {
 			return message.reply(pasteUrl ? '(version texte: <'+pasteUrl+'>)' : '', {
 				files: [ new Discord.Attachment(gif, 'spoiler.gif') ]
