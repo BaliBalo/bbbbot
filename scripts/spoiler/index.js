@@ -123,30 +123,14 @@ function spoilerGif(text) {
 
 function uploadFile(content, id) {
 	return new Promise((res, rej) => {
-		fs.writeFile(path.join(__dirname, '../data/spoilers', id + '.txt'), content, err => {
-			if (err) return res('');
+		fs.writeFile(path.join(__dirname, '../../data/spoilers', id + '.txt'), content, err => {
+			if (err) {
+				console.log('Error saving spoiler file', err);
+				return res('');
+			}
 			res('http://bbbbot.pause-geek.fr/spoilers/' + id + '.txt');
 		});
 	});
-	// return request.post({
-	// 	url: 'https://pastebin.com/api/api_post.php',
-	// 	form: {
-	// 		api_option: 'paste',
-	// 		api_dev_key: config.pastebinKey,
-	// 		api_paste_code: content,
-	// 		api_paste_name: 'Spoiler',
-	// 		api_paste_private: 1,
-	// 		api_paste_expire_date: 'N',
-	// 		api_paste_format: 'text',
-	// 		api_user_key: ''
-	// 	}
-	// }).then(res => {
-	// 	if (!res.startsWith('http')) {
-	// 		console.log('Error uploading to pastebin', res);
-	// 		return '';
-	// 	}
-	// 	return res;
-	// }).catch(e => '');
 }
 
 module.exports = function(message, content) {
