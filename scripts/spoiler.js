@@ -32,7 +32,7 @@ function spoilerGif(text) {
 			let icon;
 			let elem = src.shift().replace(/^«««=([^» ]+)»»»(.+)$/, (r, url, msg) => {
 				icon = url;
-				return msg + ' ';
+				return msg + '  ';
 			});
 			let newLine = line + (line ? ' ' : '') + elem;
 			let iSize = ctx.measureText(newLine).width;
@@ -48,7 +48,7 @@ function spoilerGif(text) {
 			if (icon) {
 				icons.push({
 					line: lines.length,
-					left: size - 15,
+					left: size - 16,
 					url: icon
 				});
 			}
@@ -79,20 +79,20 @@ function spoilerGif(text) {
 
 		from.font = font;
 		to.font = font;
-		from.textBaseline = 'top';
-		to.textBaseline = 'top';
+		from.textBaseline = 'middle';
+		to.textBaseline = 'middle';
 		to.fillStyle = '#36393e';
 		to.fillRect(0, 0, w, h);
 		from.fillStyle = '#36393e';
 		from.fillRect(0, 0, w, h);
 		from.fillStyle = 'rgba(255, 255, 255, 0.5)';
 		to.fillStyle = 'rgba(255, 255, 255, 0.7)';
-		from.fillText(defaultText, padding, padding);
-		lines.forEach((line, i) => to.fillText(line, padding, padding + lineHeight * i));
+		from.fillText(defaultText, padding, padding + lineHeight * .5);
+		lines.forEach((line, i) => to.fillText(line, padding, padding + lineHeight * (i + .5)));
 		icons.forEach((icon, i) => {
 			let img = new Image();
 			img.src = images[i];
-			to.drawImage(img, icon.left, padding + lineHeight * icon.line, 15, 15);
+			to.drawImage(img, icon.left, padding + lineHeight * (icon.line + .5) - 8, 16, 16);
 		});
 
 		encoder.start();
