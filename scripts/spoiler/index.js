@@ -65,7 +65,7 @@ function spoilerGif(text) {
 			continue;
 		}
 
-		let customCodeMatch = token.match(/^\[\[([^= ]*)=[^\] ].+)\]\]$/);
+		let customCodeMatch = token.match(/^\[\[([^= ]*)=([^\] ]+)\]\]$/);
 		if (customCodeMatch) {
 			let type = customCodeMatch[1];
 			let value = customCodeMatch[2];
