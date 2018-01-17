@@ -26,30 +26,29 @@ function spoilerGif(text) {
 	let icons = [];
 	text.forEach(src => {
 		src = src.split(' ');
-		let line = src.shift();
-		let size = ctx.measureText(line).width;
+		let line = '';
+		let size = 0;
 		while (src.length) {
 			let icon;
-			let elem = src.shift().replace(/^«««=([^» ]+)»»»/, (r, url) => {
+			let elem = src.shift().replace(/^«««=([^» ]+)»»»(.+)$/, (r, url, msg) => {
 				icon = url;
-				return ' ';
+				return msg + ' ';
 			});
-			let left = ctx.measureText(line + ' ').width;
-			let iSize = ctx.measureText(line + ' ' + elem).width;
-			if (iSize > maxWidth) {
+			let newLine = line + (line ? ' ' : '') + elem;
+			let iSize = ctx.measureText(newLine).width;
+			if (line && iSize > maxWidth) {
 				lines.push(line);
-				left = 0;
 				width = Math.max(width, size);
 				line = elem;
 				size = ctx.measureText(line).width;
 			} else {
-				line += ' ' + elem;
+				line = newLine;
 				size = iSize;
 			}
 			if (icon) {
 				icons.push({
 					line: lines.length,
-					left: left,
+					left: size - 15,
 					url: icon
 				});
 			}
@@ -161,15 +160,14 @@ module.exports = function(message, content) {
 	// use mentions.USERS_PATTERN on next major (discord.js 12)
 	content = content
 		.replace(/<@!?(1|\d{17,19})>/g, (m, id) => {
-			let user = message.mentions.members.get(id);
-			let name = user.nickname || user.user.username;
+			let guildMember = message.mentions.members.get(id);
 			let avatar = '';
-			if (user.user.avatarURL) {
-				avatar = '«««='+user.user.avatarURL+'»»»';
+			if (guildMember.user.avatarURL) {
+				avatar = '«««='+guildMember.user.avatarURL+'»»»';
 			}
-			return avatar + '@' + name;
+			return avatar + '@' + guildMember.displayName;
 		})
-		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).username);
+		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name);
 
 	return uploadFile(content.replace(/«««=([^» ]+)»»»/g, ''), message.id).then(pasteUrl => {
 		return spoilerGif(content).then(gif => {
