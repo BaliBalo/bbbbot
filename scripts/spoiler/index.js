@@ -17,7 +17,6 @@ const padding = 5;
 const font = '15px Helvetica Neue,Helvetica,Arial,sans-serif';
 const lineHeight = 20;
 function spoilerGif(text) {
-	// text = text.split('\n');
 	let c = new Canvas(320, 240);
 	let ctx = c.getContext('2d');
 
@@ -46,10 +45,10 @@ function spoilerGif(text) {
 		return left;
 	};
 	let nextToken = () => {
-		let token = txt.match(/^(«««=([^» ]+)»»»|\s|\S+)/);
+		let token = text.match(/^(«««=([^» ]+)»»»|\s|\S+)/);
 		token = token && token[0];
 		if (token) {
-			txt = txt.slice(token.length);
+			text = text.slice(token.length);
 		}
 		return token;
 	};
