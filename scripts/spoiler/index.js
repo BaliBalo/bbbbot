@@ -11,7 +11,7 @@ const Image = Canvas.Image;
 const request = require('request-promise-native');
 const getStream = require('get-stream');
 
-const customCode = '\[\[([^= ]*)=([^\] ]+)\]\]';
+const customCode = '\\[\\[([^= ]*)=([^\\] ]+)\\]\\]';
 
 const defaultText = '(spoiler, trou du cul)';
 const maxWidth = 390;
