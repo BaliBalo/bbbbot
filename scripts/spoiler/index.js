@@ -13,9 +13,11 @@ const getStream = require('get-stream');
 
 const defaultText = '(spoiler, trou du cul)';
 const maxWidth = 390;
+const maxHeight = 290;
 const padding = 5;
 const font = '15px Helvetica Neue,Helvetica,Arial,sans-serif';
 const lineHeight = 20;
+const maxLines = maxHeight / lineHeight;
 function spoilerGif(text) {
 	let c = new Canvas(320, 240);
 	let ctx = c.getContext('2d');
@@ -64,15 +66,15 @@ function spoilerGif(text) {
 
 		let iconMatch = token.match(/^«««=(.+)»»»$/);
 		if (iconMatch) {
-			let left = padding + updatePos(18) + 1;
-			let top = currentTop() - 8;
+			let left = padding + updatePos(24);
+			let top = currentTop() - 10;
 			icons.push(request({
 				url: iconMatch[1],
 				encoding: null
 			}).then(src => {
 				let img = new Image();
 				img.src = src;
-				to.drawImage(img, left, top, 16, 16);
+				to.drawImage(img, left, top, 20, 20);
 			}));
 			continue;
 		}
@@ -81,14 +83,14 @@ function spoilerGif(text) {
 		let left = padding + updatePos(size);
 		to.fillText(token, left, currentTop());
 
-		if (currentLine >= 20) {
+		if (currentLine >= maxLines) {
 			to.fillText('...', currentLeft, currentTop());
 			break;
 		}
 	}
 
 	let w = fullWidth + 2 * padding;
-	let h = (currentLine + 1) * lineHeight + 2 * padding;
+	let h = Math.min((currentLine + 1) * lineHeight, maxHeight) + 2 * padding;
 
 	return Promise.all(icons).then(() => {
 		c.width = w;
