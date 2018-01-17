@@ -102,19 +102,6 @@ function spoilerGif(text) {
 }
 
 function uploadFile(content, id) {
-	// return request.post({
-	// 	url: 'http://api.textuploader.com/v1/posts',
-	// 	headers: {
-	// 		'X-TextUploader-API-Key': config.textuploaderKey
-	// 	},
-	// 	json: {
-	// 		title: 'Spoiler',
-	// 		content: content,
-	// 		type: 'unlisted'
-	// 	}
-	// }).then(res => {
-	// 	return res && res.results && res.results[0] && res.results[0].shorturl;
-	// }).catch(e => console.log(e) || '');
 	return new Promise((res, rej) => {
 		fs.writeFile(path.join(__dirname, '../data/spoilers', id + '.txt'), content, err => {
 			if (err) return res('');
@@ -145,7 +132,7 @@ function uploadFile(content, id) {
 module.exports = function(message, content) {
 	if (!content) return;
 	message.delete();
-	return uploadFile(content).then(pasteUrl => {
+	return uploadFile(content, message.id).then(pasteUrl => {
 		return message.reply(pasteUrl ? '(version texte: <'+pasteUrl+'>)' : '', {
 			files: [ new Discord.Attachment(spoilerGif(content), 'spoiler.gif') ]
 		});
