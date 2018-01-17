@@ -1,3 +1,4 @@
+const path = require('path');
 const config = require('./config.json');
 const Discord = require('discord.js');
 const client = new Discord.Client();
@@ -31,3 +32,12 @@ client.on('message', message => {
 });
 
 client.login(config.discordToken);
+
+const express = require('express');
+const app = express();
+
+app.use('/spoilers', express.static(path.join(__dirname, 'data/spoilers')));
+
+const server = app.listen(3000, () => {
+	console.log(ts(), 'Server running');
+});

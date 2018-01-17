@@ -1,4 +1,6 @@
 const config = require('../config.json');
+const fs = require('fs');
+const path = require('path');
 
 const Discord = require('discord.js');
 const GIFEncoder = require('gifencoder');
@@ -99,7 +101,7 @@ function spoilerGif(text) {
 	return stream;
 }
 
-function uploadFile(content) {
+function uploadFile(content, id) {
 	// return request.post({
 	// 	url: 'http://api.textuploader.com/v1/posts',
 	// 	headers: {
@@ -113,32 +115,38 @@ function uploadFile(content) {
 	// }).then(res => {
 	// 	return res && res.results && res.results[0] && res.results[0].shorturl;
 	// }).catch(e => console.log(e) || '');
-	return request.post({
-		url: 'https://pastebin.com/api/api_post.php',
-		form: {
-			api_option: 'paste',
-			api_dev_key: config.pastebinKey,
-			api_paste_code: content,
-			api_paste_name: 'Spoiler',
-			api_paste_private: 1,
-			api_paste_expire_date: 'N',
-			api_paste_format: 'text',
-			api_user_key: ''
-		}
-	}).then(res => {
-		if (!res.startsWith('http')) {
-			console.log('Error uploading to pastebin', res);
-			return '';
-		}
-		return res;
-	}).catch(e => '');
+	return new Promise((res, rej) => {
+		fs.writeFile(path.join(__dirname, '../data/spoilers', id + '.txt'), content, err => {
+			if (err) return res('');
+			res('http://bbbbot.pause-geek.fr/spoilers/' + id + '.txt');
+		});
+	});
+	// return request.post({
+	// 	url: 'https://pastebin.com/api/api_post.php',
+	// 	form: {
+	// 		api_option: 'paste',
+	// 		api_dev_key: config.pastebinKey,
+	// 		api_paste_code: content,
+	// 		api_paste_name: 'Spoiler',
+	// 		api_paste_private: 1,
+	// 		api_paste_expire_date: 'N',
+	// 		api_paste_format: 'text',
+	// 		api_user_key: ''
+	// 	}
+	// }).then(res => {
+	// 	if (!res.startsWith('http')) {
+	// 		console.log('Error uploading to pastebin', res);
+	// 		return '';
+	// 	}
+	// 	return res;
+	// }).catch(e => '');
 }
 
 module.exports = function(message, content) {
 	if (!content) return;
 	message.delete();
 	return uploadFile(content).then(pasteUrl => {
-		return message.reply('(version texte: <'+pasteUrl+'>)', {
+		return message.reply(pasteUrl ? '(version texte: <'+pasteUrl+'>)' : '', {
 			files: [ new Discord.Attachment(spoilerGif(content), 'spoiler.gif') ]
 		});
 	});
