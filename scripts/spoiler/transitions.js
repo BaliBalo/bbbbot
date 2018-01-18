@@ -30,6 +30,32 @@ let bands = (function() {
 	return genericRenderer(frame, duration);
 })();
 
+let bandsAlternate = (function() {
+	let bandSize = 40;
+	let duration = 40;
+	let bandDuration = .2;
+	let easing = t => t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1;
+
+	function frame(i, ctx, from, to) {
+		let p = i / (duration - 1);
+		let w = ctx.canvas.width;
+		let h = ctx.canvas.height;
+		for (let index = 0; index * bandSize < w; index++) {
+			let l = index * bandSize;
+			let bandFrom = (1 - bandDuration) * l / w;
+			let bandProgress = Math.min(Math.max((p - bandFrom) / bandDuration, 0), 1);
+			bandProgress = easing(bandProgress);
+			let direction = (index % 2 ? 1 : -1);
+			let y = bandProgress * h * direction;
+			ctx.drawImage(from, l, 0, bandSize, h, l, y, bandSize, h);
+			ctx.drawImage(to, l, 0, bandSize, h, l, y + h * -direction, bandSize, h);
+		}
+	}
+
+	return genericRenderer(frame, duration);
+})();
+
 module.exports = {
-	bands
+	bands,
+	bandsAlternate
 };
