@@ -35,7 +35,7 @@ function spoilerGif(text, defaultText) {
 	defaultText = defaultText || '(spoiler, trou du cul)';
 
 	// 36 for the 'gif' size + 5 extra padding
-	let fullWidth = to.measureText(defaultText).width + 41;
+	let fullWidth = Math.min(to.measureText(defaultText).width + 41, maxWidth);
 	let icons = [];
 	let currentLine = 0;
 	let currentLeft = 0;
