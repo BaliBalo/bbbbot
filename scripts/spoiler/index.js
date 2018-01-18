@@ -23,11 +23,14 @@ function spoilerGif(text, title) {
 	let c = new Canvas(320, 240);
 	let ctx = c.getContext('2d');
 
-	let transitionId = ~~(Math.random() * transList.length);
+	let transition;
 	let desiredTransition = title.match(/^([a-z]+)|/i);
 	if (desiredTransition && transitions[desiredTransition[1]]) {
-		transitionId = desiredTransition[1];
+		transition = transitions[desiredTransition[1]];
 		title = title.slice(desiredTransition[0].length);
+	} else {
+		let transitionId = ~~(Math.random() * transList.length);
+		transition = transList[transitionId];
 	}
 
 	title = title || '(spoiler, trou du cul)';
@@ -130,7 +133,7 @@ function spoilerGif(text, title) {
 		encoder.setRepeat(-1);
 		encoder.setDelay(20);
 
-		transList[transitionId](ctx, cfrom, cto, () => encoder.addFrame(ctx));
+		transition(ctx, cfrom, cto, () => encoder.addFrame(ctx));
 
 		encoder.finish();
 
