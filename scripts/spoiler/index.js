@@ -98,6 +98,7 @@ function spoilerGif(text, defaultText) {
 			break;
 		}
 	}
+	fullWidth = Math.max(fullWidth, Math.min(currentLeft, maxWidth));
 
 	let w = fullWidth + 2 * padding;
 	let h = Math.min((currentLine + 1) * lineHeight, maxHeight) + 2 * padding;
