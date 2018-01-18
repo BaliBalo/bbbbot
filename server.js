@@ -21,9 +21,11 @@ client.on('message', message => {
 	if (message.content.startsWith('!mixu')) {
 		return mixu(message);
 	}
-	if (message.content.startsWith('!spoiler')) {
-		let content = message.content.slice(9).trim();
-		return spoiler(message, content);
+	let spoilerMatch = message.content.match(/^!spoiler(\[([^\]]*)\])? /);
+	if (spoilerMatch) {
+		let title = spoilerMatch[2];
+		let content = message.content.slice(spoilerMatch[0].length).trim();
+		return spoiler(message, content, title);
 	}
 
 	// if (message.content === 'ping') {

@@ -142,7 +142,7 @@ function uploadFile(content, id) {
 	});
 }
 
-module.exports = function(message, content) {
+module.exports = function(message, content, title) {
 	if (!content) return;
 	message.delete();
 
@@ -169,7 +169,11 @@ module.exports = function(message, content) {
 
 	return uploadFile(textContent, message.id).then(pasteUrl => {
 		return spoilerGif(imgContent).then(gif => {
-			return message.reply(pasteUrl ? '(version texte: <'+pasteUrl+'>)' : '', {
+			let replyMsg = [
+				title,
+				pasteUrl && '(version texte: <'+pasteUrl+'>)'
+			].filter(e => e).join(' ');
+			return message.reply(replyMsg, {
 				files: [ new Discord.Attachment(gif, 'spoiler.gif') ]
 			});
 		});
