@@ -157,6 +157,14 @@ module.exports = function(message, content, title) {
 	if (!content) return;
 	message.delete();
 
+	title = title || '';
+
+	let shouldSave = true;
+	if (title.startsWith('!|')) {
+		title = title.slice(2);
+		shouldSave = false;
+	}
+
 	let emojis = message.guild.emojis;
 	// use mentions.USERS_PATTERN on next major (discord.js 12)
 	let imgContent = content
@@ -178,7 +186,11 @@ module.exports = function(message, content, title) {
 		.replace(/<:([^: ]+):\d+>/g, (m, name) => ':' + name + ':')
 		.replace(new RegExp(customCode, 'g'), '');
 
-	return uploadFile(textContent, message.id).then(pasteUrl => {
+	let upload = Promise.resolve();
+	if (shouldSave) {
+		upload = uploadFile(textContent, message.id);
+	}
+	return upload.then(pasteUrl => {
 		return spoilerGif(imgContent, title).then(gif => {
 			let replyMsg = [
 				pasteUrl && '(version texte: <'+pasteUrl+'>)'
