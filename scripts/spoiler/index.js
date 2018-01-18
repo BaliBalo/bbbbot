@@ -13,14 +13,13 @@ const getStream = require('get-stream');
 
 const customCode = '\\[\\[([^= ]*)=([^\\] ]+)\\]\\]';
 
-const defaultText = '(spoiler, trou du cul)';
 const maxWidth = 390;
 const maxHeight = 290;
 const padding = 5;
 const font = '15px Helvetica Neue,Helvetica,Arial,sans-serif';
 const lineHeight = 20;
 const maxLines = maxHeight / lineHeight;
-function spoilerGif(text) {
+function spoilerGif(text, defaultText) {
 	let c = new Canvas(320, 240);
 	let ctx = c.getContext('2d');
 
@@ -32,6 +31,8 @@ function spoilerGif(text) {
 	to.fillRect(0, 0, cto.width, cto.height);
 	let defaultColor = 'rgba(255, 255, 255, 0.7)'
 	to.fillStyle = defaultColor;
+
+	defaultText = defaultText || '(spoiler, trou du cul)';
 
 	// 36 for the 'gif' size + 5 extra padding
 	let fullWidth = to.measureText(defaultText).width + 41;
@@ -168,9 +169,8 @@ module.exports = function(message, content, title) {
 		.replace(new RegExp(customCode, 'g'), '');
 
 	return uploadFile(textContent, message.id).then(pasteUrl => {
-		return spoilerGif(imgContent).then(gif => {
+		return spoilerGif(imgContent, title).then(gif => {
 			let replyMsg = [
-				title,
 				pasteUrl && '(version texte: <'+pasteUrl+'>)'
 			].filter(e => e).join(' ');
 			return message.reply(replyMsg, {
