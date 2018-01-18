@@ -137,7 +137,7 @@ function uploadFile(content, id) {
 				console.log('Error saving spoiler file', err);
 				return res('');
 			}
-			res('http://bbbbot.pause-geek.fr/spoilers/' + id + '.txt');
+			res('http://bbbbot.balibalo.xyz/spoilers/' + id + '.txt');
 		});
 	});
 }
