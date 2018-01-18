@@ -24,7 +24,7 @@ function spoilerGif(text, title) {
 	let ctx = c.getContext('2d');
 
 	let transition;
-	let desiredTransition = title.match(/^([a-z]+)|/i);
+	let desiredTransition = title.match(/^([a-z]+)\|/i);
 	if (desiredTransition && transitions[desiredTransition[1]]) {
 		transition = transitions[desiredTransition[1]];
 		title = title.slice(desiredTransition[0].length);
