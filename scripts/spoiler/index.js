@@ -19,9 +19,18 @@ const padding = 5;
 const font = '15px Helvetica Neue,Helvetica,Arial,sans-serif';
 const lineHeight = 20;
 const maxLines = maxHeight / lineHeight;
-function spoilerGif(text, defaultText) {
+function spoilerGif(text, title) {
 	let c = new Canvas(320, 240);
 	let ctx = c.getContext('2d');
+
+	let transitionId = ~~(Math.random() * transList.length);
+	let desiredTransition = title.match(/^([a-z]+)|/i);
+	if (desiredTransition && transitions[desiredTransition[1]]) {
+		transitionId = desiredTransition[1];
+		title = title.slice(desiredTransition[0].length);
+	}
+
+	title = title || '(spoiler, trou du cul)';
 
 	let cto = new Canvas(maxWidth + 2 * padding, 20 * lineHeight);
 	let to = cto.getContext('2d');
@@ -32,10 +41,8 @@ function spoilerGif(text, defaultText) {
 	let defaultColor = 'rgba(255, 255, 255, 0.7)'
 	to.fillStyle = defaultColor;
 
-	defaultText = defaultText || '(spoiler, trou du cul)';
-
 	// 36 for the 'gif' size + 5 extra padding
-	let fullWidth = Math.min(to.measureText(defaultText).width + 41, maxWidth);
+	let fullWidth = Math.min(to.measureText(title).width + 41, maxWidth);
 	let icons = [];
 	let currentLine = 0;
 	let currentLeft = 0;
@@ -117,14 +124,13 @@ function spoilerGif(text, defaultText) {
 		from.fillStyle = '#36393e';
 		from.fillRect(0, 0, w, h);
 		from.fillStyle = 'rgba(255, 255, 255, 0.5)';
-		from.fillText(defaultText, padding, padding + lineHeight * .5);
+		from.fillText(title, padding, padding + lineHeight * .5);
 
 		encoder.start();
 		encoder.setRepeat(-1);
 		encoder.setDelay(20);
 
-		let tid = ~~(Math.random() * transList.length);
-		transList[tid](ctx, cfrom, cto, () => encoder.addFrame(ctx));
+		transList[transitionId](ctx, cfrom, cto, () => encoder.addFrame(ctx));
 
 		encoder.finish();
 
