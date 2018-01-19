@@ -20,11 +20,13 @@ const font = '15px Helvetica Neue,Helvetica,Arial,sans-serif';
 const lineHeight = 20;
 const maxLines = maxHeight / lineHeight;
 
-function drawText(ctx, text) {
+function drawText(ctx, text, options) {
+	options = options || {};
 	ctx.font = font;
 	ctx.textBaseline = 'middle';
-	let defaultColor = 'rgba(255, 255, 255, 0.7)'
+	defaultColor = options.defaultColor || 'white';
 	ctx.fillStyle = defaultColor;
+	let maxWidth = options.maxWidth || 390;
 
 	let fullWidth = 0;
 	let icons = [];
@@ -119,7 +121,10 @@ function spoilerGif(text, title) {
 	let from = cfrom.getContext('2d');
 	from.fillStyle = '#36393e';
 	from.fillRect(0, 0, cfrom.width, cfrom.height);
-	let fromData = drawText(from, title);
+	let fromData = drawText(from, title, {
+		defaultColor: 'rgba(255, 255, 255, 0.5)',
+		maxWidth: maxWidth - 41
+	});
 	// 36 for the 'gif' size + 5 extra padding
 	fromData.w = Math.min(fromData.w + 41, maxWidth);
 
@@ -127,7 +132,10 @@ function spoilerGif(text, title) {
 	let to = cto.getContext('2d');
 	to.fillStyle = '#36393e';
 	to.fillRect(0, 0, cto.width, cto.height);
-	let toData = drawText(to, text);
+	let toData = drawText(to, text, {
+		defaultColor: 'rgba(255, 255, 255, 0.7)',
+		maxWidth: maxWidth
+	});
 
 	let w = Math.max(fromData.w, toData.w);
 	let h = Math.max(fromData.h, toData.h);
