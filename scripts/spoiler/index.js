@@ -118,7 +118,7 @@ function spoilerGif(text, title) {
 	let cfrom = new Canvas(maxWidth + 2 * padding, maxHeight);
 	let from = cfrom.getContext('2d');
 	from.fillStyle = '#36393e';
-	from.fillRect(0, 0, w, h);
+	from.fillRect(0, 0, cfrom.width, cfrom.height);
 	let fromData = drawText(from, title);
 	// 36 for the 'gif' size + 5 extra padding
 	fromData.w = Math.min(fromData.w + 41, maxWidth);
