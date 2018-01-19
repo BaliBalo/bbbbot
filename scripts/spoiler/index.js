@@ -9,7 +9,7 @@ const GIFEncoder = require('gifencoder');
 const Canvas = require('canvas');
 const Image = Canvas.Image;
 const request = require('request-promise-native');
-const getStream = require('get-stream');
+const twemoji = require('twemoji');
 
 const customCode = '\\[\\[([^= ]*)=([^\\] ]+)\\]\\]';
 
@@ -153,6 +153,11 @@ function uploadFile(content, id) {
 	});
 }
 
+function replaceStandardEmojis(txt) {
+	let imgtags = /<img class="emoji"[^>]* src="([^"]+)"[^>]*\/>/g;
+	return twemoji.parse(txt, icon => '[[icon=https://twemoji.maxcdn.com/2/72x72/'+icon+'.png]]').replace(imgtags, (m, src) => src);
+}
+
 module.exports = function(message, content, title) {
 	if (!content) return;
 	message.delete();
@@ -166,19 +171,18 @@ module.exports = function(message, content, title) {
 	}
 
 	let emojis = message.guild.emojis;
-	// use mentions.USERS_PATTERN on next major (discord.js 12)
-	let imgContent = content
-		.replace(/<@!?(1|\d{17,19})>/g, (m, id) => {
-			let guildMember = message.mentions.members.get(id);
-			let prefix = '[[color='+guildMember.displayHexColor+']]';
-			let suffix = '[[color=reset]]';
-			if (guildMember.user.avatarURL) {
-				prefix = '[[icon=' + guildMember.user.avatarURL + ']]' + prefix;
-			}
-			return prefix + '@' + guildMember.displayName + suffix;
-		})
-		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name)
-		.replace(/<:[^: ]+:(\d+)>/g, (m, id) => '[[icon=https://cdn.discordapp.com/emojis/' + id + '.png]]');
+	let imgContent = content.replace(/<@!?(1|\d{17,19})>/g, (m, id) => {
+		let guildMember = message.mentions.members.get(id);
+		let prefix = '[[color='+guildMember.displayHexColor+']]';
+		let suffix = '[[color=reset]]';
+		if (guildMember.user.avatarURL) {
+			prefix = '[[icon=' + guildMember.user.avatarURL + ']]' + prefix;
+		}
+		return prefix + '@' + guildMember.displayName + suffix;
+	});
+	imgContent = imgContent.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name);
+	imgContent = imgContent.replace(/<:[^: ]+:(\d+)>/g, (m, id) => '[[icon=https://cdn.discordapp.com/emojis/' + id + '.png]]');
+	imgContent = replaceStandardEmojis(imgContent);
 
 	let textContent = content
 		.replace(/<@!?(1|\d{17,19})>/g, (m, id) => '@' + message.mentions.members.get(id).displayName)
