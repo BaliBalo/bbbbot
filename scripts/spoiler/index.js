@@ -31,7 +31,7 @@ function drawText(ctx, text) {
 	let currentLine = 0;
 	let currentLeft = 0;
 	let nextLine = () => {
-		fullWidth = Math.max(fullWidth, left);
+		fullWidth = Math.max(fullWidth, currentLeft);
 		currentLine++;
 	};
 	let updatePos = width => {
