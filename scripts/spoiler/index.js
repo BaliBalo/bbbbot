@@ -19,41 +19,27 @@ const padding = 5;
 const font = '15px Helvetica Neue,Helvetica,Arial,sans-serif';
 const lineHeight = 20;
 const maxLines = maxHeight / lineHeight;
-function spoilerGif(text, title) {
-	let c = new Canvas(320, 240);
-	let ctx = c.getContext('2d');
 
-	let transition;
-	let desiredTransition = title.match(/^([a-z]+)\|/i);
-	if (desiredTransition && transitions[desiredTransition[1]]) {
-		transition = transitions[desiredTransition[1]];
-		title = title.slice(desiredTransition[0].length);
-	} else {
-		let transitionId = ~~(Math.random() * transList.length);
-		transition = transList[transitionId];
-	}
-
-	title = title || '(spoiler, trou du cul)';
-
-	let cto = new Canvas(maxWidth + 2 * padding, 20 * lineHeight);
-	let to = cto.getContext('2d');
-	to.font = font;
-	to.textBaseline = 'middle';
-	to.fillStyle = '#36393e';
-	to.fillRect(0, 0, cto.width, cto.height);
+function drawText(ctx, text) {
+	ctx.font = font;
+	ctx.textBaseline = 'middle';
 	let defaultColor = 'rgba(255, 255, 255, 0.7)'
-	to.fillStyle = defaultColor;
+	ctx.fillStyle = defaultColor;
 
-	// 36 for the 'gif' size + 5 extra padding
-	let fullWidth = Math.min(to.measureText(title).width + 41, maxWidth);
+	let fullWidth = 0;
 	let icons = [];
 	let currentLine = 0;
 	let currentLeft = 0;
+	let nextLine = () => {
+		fullWidth = Math.max(fullWidth, left);
+		currentLine++;
+	};
 	let updatePos = width => {
 		let left = currentLeft;
 		if (left + width > maxWidth) {
-			fullWidth = Math.max(fullWidth, Math.min(currentLeft, maxWidth));
-			if (currentLeft) currentLine++;
+			if (currentLeft) {
+				nextLine();
+			}
 			currentLeft = width;
 			return 0;
 		}
@@ -73,7 +59,7 @@ function spoilerGif(text, title) {
 	let token;
 	while (token = nextToken()) {
 		if (token === '\n') {
-			currentLine++;
+			nextLine();
 			currentLeft = 0;
 			continue;
 		}
@@ -91,52 +77,75 @@ function spoilerGif(text, title) {
 				}).then(src => {
 					let img = new Image();
 					img.src = src;
-					to.drawImage(img, left, top, 20, 20);
+					ctx.drawImage(img, left, top, 20, 20);
 				}));
-			} else if(type === 'color') {
-				to.fillStyle = value === 'reset' ? defaultColor : value;
+			} else if (type === 'color') {
+				ctx.fillStyle = value === 'reset' ? defaultColor : value;
 			}
 			continue;
 		}
 
-		let size = to.measureText(token).width;
+		let size = ctx.measureText(token).width;
 		let left = padding + updatePos(size);
-		to.fillText(token, left, currentTop());
+		ctx.fillText(token, left, currentTop());
 
 		if (currentLine >= maxLines - 1) {
-			to.fillText('...', currentLeft, currentTop());
+			ctx.fillText('...', currentLeft, currentTop());
 			break;
 		}
 	}
-	fullWidth = Math.max(fullWidth, Math.min(currentLeft, maxWidth));
-
-	let w = fullWidth + 2 * padding;
+	let w = Math.min(Math.max(fullWidth, currentLeft), maxWidth) + 2 * padding;
 	let h = Math.min((currentLine + 1) * lineHeight, maxHeight) + 2 * padding;
+	return { w, h, icons };
+}
+
+function spoilerGif(text, title) {
+	let c = new Canvas(320, 240);
+	let ctx = c.getContext('2d');
+
+	let transition;
+	let desiredTransition = title.match(/^([a-z]+)\|/i);
+	if (desiredTransition && transitions[desiredTransition[1]]) {
+		transition = transitions[desiredTransition[1]];
+		title = title.slice(desiredTransition[0].length);
+	} else {
+		let transitionId = ~~(Math.random() * transList.length);
+		transition = transList[transitionId];
+	}
+
+	title = title || '(spoiler, trou du cul)';
+
+	let cfrom = new Canvas(maxWidth + 2 * padding, maxHeight);
+	let from = cfrom.getContext('2d');
+	from.fillStyle = '#36393e';
+	from.fillRect(0, 0, w, h);
+	let fromData = drawText(from, title);
+	// 36 for the 'gif' size + 5 extra padding
+	fromData.w = Math.min(fromData.w + 41, maxWidth);
+
+	let cto = new Canvas(maxWidth + 2 * padding, maxHeight);
+	let to = cto.getContext('2d');
+	to.fillStyle = '#36393e';
+	to.fillRect(0, 0, cto.width, cto.height);
+	let toData = drawText(to, text);
+
+	let w = Math.max(fromData.w, toData.w);
+	let h = Math.max(fromData.h, toData.h);
+	let icons = [].concat(fromData.icons, toData.icons);
 
 	return Promise.all(icons).then(() => {
 		c.width = w;
 		c.height = h;
 		let encoder = new GIFEncoder(w, h);
-
-		let stream = encoder.createReadStream();
-
-		let cfrom = new Canvas(w, h);
-		let from = cfrom.getContext('2d');
-		from.font = font;
-		from.textBaseline = 'middle';
-		from.fillStyle = '#36393e';
-		from.fillRect(0, 0, w, h);
-		from.fillStyle = 'rgba(255, 255, 255, 0.5)';
-		from.fillText(title, padding, padding + lineHeight * .5);
-
-		encoder.start();
 		encoder.setRepeat(-1);
 		encoder.setDelay(20);
+
+		let stream = encoder.createReadStream();
+		encoder.start();
 
 		transition(ctx, cfrom, cto, () => encoder.addFrame(ctx));
 
 		encoder.finish();
-
 		return stream;
 	});
 }
@@ -158,6 +167,22 @@ function replaceStandardEmojis(txt) {
 	return twemoji.parse(txt, icon => '[[icon=https://twemoji.maxcdn.com/2/72x72/'+icon+'.png]]').replace(imgtags, (m, src) => src);
 }
 
+function prepareDrawingTxt(txt, message) {
+	txt = txt.replace(/<@!?(1|\d{17,19})>/g, (m, id) => {
+		let guildMember = message.mentions.members.get(id);
+		let prefix = '[[color='+guildMember.displayHexColor+']]';
+		let suffix = '[[color=reset]]';
+		if (guildMember.user.avatarURL) {
+			prefix = '[[icon=' + guildMember.user.avatarURL + ']]' + prefix;
+		}
+		return prefix + '@' + guildMember.displayName + suffix;
+	});
+	txt = txt.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name);
+	txt = txt.replace(/<:[^: ]+:(\d+)>/g, (m, id) => '[[icon=https://cdn.discordapp.com/emojis/' + id + '.png]]');
+	txt = replaceStandardEmojis(txt);
+	return txt;
+}
+
 module.exports = function(message, content, title) {
 	if (!content) return;
 	message.delete();
@@ -170,19 +195,8 @@ module.exports = function(message, content, title) {
 		shouldSave = false;
 	}
 
-	let emojis = message.guild.emojis;
-	let imgContent = content.replace(/<@!?(1|\d{17,19})>/g, (m, id) => {
-		let guildMember = message.mentions.members.get(id);
-		let prefix = '[[color='+guildMember.displayHexColor+']]';
-		let suffix = '[[color=reset]]';
-		if (guildMember.user.avatarURL) {
-			prefix = '[[icon=' + guildMember.user.avatarURL + ']]' + prefix;
-		}
-		return prefix + '@' + guildMember.displayName + suffix;
-	});
-	imgContent = imgContent.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name);
-	imgContent = imgContent.replace(/<:[^: ]+:(\d+)>/g, (m, id) => '[[icon=https://cdn.discordapp.com/emojis/' + id + '.png]]');
-	imgContent = replaceStandardEmojis(imgContent);
+	let imgContent = prepareDrawingTxt(content, message);
+	let imgTitle = prepareDrawingTxt(title, message);
 
 	let textContent = content
 		.replace(/<@!?(1|\d{17,19})>/g, (m, id) => '@' + message.mentions.members.get(id).displayName)
@@ -195,7 +209,7 @@ module.exports = function(message, content, title) {
 		upload = uploadFile(textContent, message.id);
 	}
 	return upload.then(pasteUrl => {
-		return spoilerGif(imgContent, title).then(gif => {
+		return spoilerGif(imgContent, imgTitle).then(gif => {
 			let replyMsg = [
 				pasteUrl && '(version texte: <'+pasteUrl+'>)'
 			].filter(e => e).join(' ');
