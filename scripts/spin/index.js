@@ -53,13 +53,13 @@ module.exports = function(choices, message) {
 	let l = choices.length * dup;
 	let ai = 2 * Math.PI / l;
 
-	// let encoder = new GIFEncoder(w, h);
-	// encoder.setRepeat(-1);
-	// encoder.setDelay(20);
-	// encoder.setQuality(1);
-    //
-	// let stream = encoder.createReadStream();
-	// encoder.start();
+	let encoder = new GIFEncoder(w, h);
+	encoder.setRepeat(-1);
+	encoder.setDelay(20);
+	encoder.setQuality(1);
+
+	let stream = encoder.createReadStream();
+	encoder.start();
 
 	let count = 0;
 	let result = new Canvas(w, h);
@@ -155,7 +155,7 @@ module.exports = function(choices, message) {
 		}
 
 		count++;
-		// encoder.addFrame(ctx);
+		encoder.addFrame(ctx);
 		if (force > .001) {
 			offset += force;
 			force *= friction;
@@ -168,16 +168,15 @@ module.exports = function(choices, message) {
 			winFrameNum++;
 		}
 		if (winFrameNum >= 25 && !particles.length) {
-			// encoder.finish();
+			encoder.finish();
 		} else {
-			frame(wheel);
+			return new Promise(resolve => setTimeout(resolve, 0)).then(() => frame(wheel));
 		}
 	}
-	frame(drawWheel());
-
-	console.log('generated gif in ' + ((Date.now() - start) / 1000) + 's (' + count + ')');
-
-	// return message.reply('', {
-	// 	files: [ new Discord.Attachment(stream, 'spin.gif') ]
-	// });
+	return frame(drawWheel()).then(() => {
+		console.log('generated gif in ' + ((Date.now() - start) / 1000) + 's (' + count + ')');
+		return message.reply('', {
+			files: [ new Discord.Attachment(stream, 'spin.gif') ]
+		});
+	});
 }
