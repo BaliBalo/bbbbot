@@ -119,11 +119,12 @@ module.exports = function(choices, message) {
 			let opacity = Math.min(winFrameNum / 20, .7);
 			ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
 			ctx.fillRect(0, 0, w, h);
-			if (winFrameNum >= 5 && winFrameNum < 18) {
-				for (let i = 0, n = Math.random() * 5; i < n; i++) {
-					let force = Math.random() * 7 + 4;
+			if (winFrameNum >= 3 && winFrameNum < 20) {
+				for (let i = 0, n = Math.random() * 3.5; i < n; i++) {
+					let force = Math.random() * 10 + 3;
 					// let angle = Math.random() * 2 * Math.PI;
-					let angle = ((Math.random() - .5) * .4 - .5) * Math.PI;
+					// let angle = ((Math.random() - .5) * .4 - .5) * Math.PI;
+					let angle = Math.PI * ((Math.random() * .2 + .05) * (Math.random() < .5 ? -1 : 1) - .5);
 					particles.push({
 						color: pColors[~~(Math.random() * pColors.length)],
 						rad: 4 + Math.random() * 6,
@@ -171,7 +172,7 @@ module.exports = function(choices, message) {
 			}
 			winFrameNum++;
 		}
-		if (winFrameNum >= 18 && !particles.length) {
+		if (winFrameNum >= 20 && !particles.length) {
 			encoder.finish();
 			return;
 		}
