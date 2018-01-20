@@ -59,6 +59,10 @@ module.exports = function(choices, message) {
 	encoder.setQuality(20);
 
 	let stream = encoder.createReadStream();
+	let file = new Discord.Attachment(stream, 'spin.gif');
+	message.reply('', {
+		files: [ file ]
+	});
 	encoder.start();
 
 	let count = 0;
@@ -115,11 +119,11 @@ module.exports = function(choices, message) {
 			let opacity = Math.min(winFrameNum / 20, .7);
 			ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
 			ctx.fillRect(0, 0, w, h);
-			if (winFrameNum >= 14 && winFrameNum < 19) {
+			if (winFrameNum >= 12 && winFrameNum < 20) {
 				for (let i = 0, n = Math.random() * 8; i < n; i++) {
-					let force = Math.random() * 5 + 5;
+					let force = Math.random() * 10 + 6;
 					// let angle = Math.random() * 2 * Math.PI;
-					let angle = ((Math.random() - .5) * .8 - .5) * Math.PI;
+					let angle = ((Math.random() - .5) * .6 - .5) * Math.PI;
 					particles.push({
 						color: pColors[~~(Math.random() * pColors.length)],
 						rad: 4 + Math.random() * 6,
@@ -176,8 +180,8 @@ module.exports = function(choices, message) {
 	}
 	return frame(drawWheel()).then(() => {
 		console.log('generated gif in ' + ((Date.now() - start) / 1000) + 's (' + count + ')');
-		return message.reply('', {
-			files: [ new Discord.Attachment(stream, 'spin.gif') ]
-		});
+		// return message.reply('', {
+		// 	files: [ file ]
+		// });
 	});
 }
