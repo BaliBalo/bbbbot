@@ -40,9 +40,8 @@ module.exports = function(choices, message) {
 	});
 	shuffle(colors);
 
-	// let force = Math.random() * .3 + .55;
-	let force = Math.random() * .5 + .1;
-	let friction = .98;
+	let force = Math.random() * .7 + .1;
+	let friction = .96;
 	let offset = 0;
 
 	let minSliceSize = Math.PI / 6;
@@ -63,29 +62,43 @@ module.exports = function(choices, message) {
 
 	let result = new Canvas(w, h);
 	let ctx = result.getContext('2d');
-	ctx.font = '15px sans-serif';
+	ctx.font = '30px sans-serif';
 	ctx.textBaseline = 'middle';
 	ctx.textAlign = 'center';
-	let won = '';
+	let won = undefined;
+	let winFrameNum = 0;
 	let lastWheelFrame = new Canvas(w, h);
 	let lastWheelCtx = lastWheelFrame.getContext('2d');
 	let particles = [];
-	function spinFrame() {
+	function drawWheel() {
+		let wheel = new Canvas(2 * s, 2 * s);
+		let wheelCtx = wheel.getContext('2d');
+		wheelCtx.font = '15px sans-serif';
+		wheelCtx.textBaseline = 'middle';
+		wheelCtx.textAlign = 'center';
+		wheelCtx.save();
+		wheelCtx.translate(s, s);
+		for (let i = 0; i < l; i++) {
+			wheelCtx.beginPath();
+			wheelCtx.moveTo(0, 0);
+			wheelCtx.arc(0, 0, s, -.5 * ai, .5 * ai, false);
+			wheelCtx.fillStyle = colors[i % choices.length % colors.length];
+			wheelCtx.fill();
+			wheelCtx.fillStyle = 'black';
+			wheelCtx.fillText(choices[i % choices.length], s * .62, 0, s * .7);
+			wheelCtx.rotate(-ai);
+		}
+		wheelCtx.restore();
+		return wheel;
+	}
+	function frame(wheel) {
 		ctx.fillStyle = '#36393e';
 		ctx.fillRect(0, 0, w, h);
 		ctx.save();
 		ctx.translate(x, y);
 		ctx.rotate(offset);
-		for (let i = 0; i < l; i++) {
-			ctx.beginPath();
-			ctx.moveTo(0, 0);
-			ctx.arc(0, 0, s, -.5 * ai, .5 * ai, false);
-			ctx.fillStyle = colors[i % choices.length % colors.length];
-			ctx.fill();
-			ctx.fillStyle = 'black';
-			ctx.fillText(choices[i % choices.length], s * .62, 0, s * .7);
-			ctx.rotate(-ai);
-		}
+		ctx.translate(-s, -s);
+		ctx.drawImage(wheel, 0, 0);
 		ctx.restore();
 		ctx.fillStyle = 'white';
 		ctx.strokeStyle = 'black';
@@ -95,24 +108,8 @@ module.exports = function(choices, message) {
 		ctx.closePath();
 		ctx.fill();
 		ctx.stroke();
-		encoder.addFrame(ctx);
-		if (force > .001) {
-			offset += force;
-			force *= friction;
-			spinFrame();
-		} else {
-			ctx.font = '30px sans-serif';
-			won = choices[~~(dup * choices.length * ((offset + ai * .5) / (2 * Math.PI) % 1)) % choices.length];
-			lastWheelCtx.drawImage(result, 0, 0);
-			winFrame();
-		}
-	}
-	let winFrameNum = 0;
-	function winFrame() {
-		winFrameNum++;
-		ctx.clearRect(0, 0, w, h);
-		ctx.drawImage(lastWheelFrame, 0, 0);
-		let opacity = Math.min(winFrameNum, 20) / 40;
+
+		let opacity = Math.min(winFrameNum / 40, .7);
 		ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
 		ctx.fillRect(0, 0, w, h);
 		if (winFrameNum >= 40 && winFrameNum < 50) {
@@ -142,22 +139,34 @@ module.exports = function(choices, message) {
 				particles.splice(i, 1);
 			}
 		}
-		let scaleP = Math.min(Math.max(winFrameNum - 20, 0), 20) / 20;
-		scaleP *= scaleP * scaleP;
-		ctx.save();
-		ctx.translate(x, y);
-		ctx.scale(scaleP, scaleP);
-		ctx.fillStyle = 'white';
-		ctx.fillText(won, 0, 0, w - 10);
-		ctx.restore();
+		let scaleP = Math.min(Math.max((winFrameNum - 20) / 20, 0), 1);
+		if (scaleP) {
+			scaleP *= scaleP * scaleP;
+			ctx.save();
+			ctx.translate(x, y);
+			ctx.scale(scaleP, scaleP);
+			ctx.fillStyle = 'white';
+			ctx.fillText(won, 0, 0, w - 10);
+			ctx.restore();
+		}
+
 		encoder.addFrame(ctx);
+		if (force > .001) {
+			offset += force;
+			force *= friction;
+		} else {
+			if (won === undefined) {
+				won = choices[~~(dup * choices.length * ((offset + ai * .5) / (2 * Math.PI) % 1)) % choices.length];
+			}
+			winFrameNum++;
+		}
 		if (winFrameNum >= 50 && !particles.length) {
 			encoder.finish();
 		} else {
-			winFrame();
+			frame(wheel);
 		}
 	}
-	spinFrame();
+	frame(drawWheel());
 
 	return message.reply('', {
 		files: [ new Discord.Attachment(stream, 'spin.gif') ]

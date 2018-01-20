@@ -29,7 +29,7 @@ client.on('message', message => {
 		return mixu(message);
 	}
 	if (message.content.startsWith('!spin')) {
-		let options = message.content.slice(5).split(',').map(e => e.trim());
+		let options = message.content.slice(5).split(',').map(e => e.trim()).filter(e => e);
 		return spin(options, message);
 	}
 
