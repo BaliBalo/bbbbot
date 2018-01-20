@@ -166,7 +166,6 @@ module.exports = function(choices, message) {
 			force *= friction;
 		} else {
 			if (won === undefined) {
-				console.log('won in ' + ((Date.now() - start) / 1000) + 's (' + count + ')');
 				force = 0;
 				won = choices[~~(dup * choices.length * ((offset + ai * .5) / (2 * Math.PI) % 1)) % choices.length];
 			}
@@ -174,14 +173,13 @@ module.exports = function(choices, message) {
 		}
 		if (winFrameNum >= 18 && !particles.length) {
 			encoder.finish();
-		} else {
-			return new Promise(resolve => setTimeout(resolve, 0)).then(() => frame(wheel));
+			return;
 		}
+		if (count % 10 === 0) {
+			// Every few frames, use setTimeout to let the process do other stuff
+			return new Promise(resolve => setTimeout(resolve, 1)).then(() => frame(wheel));
+		}
+		return frame(wheel);
 	}
-	return frame(drawWheel()).then(() => {
-		console.log('generated gif in ' + ((Date.now() - start) / 1000) + 's (' + count + ')');
-		// return message.reply('', {
-		// 	files: [ file ]
-		// });
-	});
+	return frame(drawWheel());
 }
