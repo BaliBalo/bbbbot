@@ -41,8 +41,8 @@ module.exports = function(choices, message) {
 	});
 	shuffle(colors);
 
-	let force = Math.random() * .5 + .1;
-	let friction = .98;
+	let force = Math.random() * .8 + .15;
+	let friction = .95;
 	let offset = 0;
 
 	let minSliceSize = Math.PI / 6;
@@ -56,7 +56,7 @@ module.exports = function(choices, message) {
 	let encoder = new GIFEncoder(w, h);
 	encoder.setRepeat(-1);
 	encoder.setDelay(50);
-	encoder.setQuality(6);
+	encoder.setQuality(1);
 
 	let stream = encoder.createReadStream();
 	encoder.start();
@@ -112,12 +112,12 @@ module.exports = function(choices, message) {
 		ctx.stroke();
 
 		if (winFrameNum) {
-			let opacity = Math.min(winFrameNum / 40, .7);
+			let opacity = Math.min(winFrameNum / 30, .7);
 			ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
 			ctx.fillRect(0, 0, w, h);
-			if (winFrameNum >= 40 && winFrameNum < 50) {
+			if (winFrameNum >= 15 && winFrameNum < 25) {
 				for (let i = 0, n = Math.random() * 4; i < n; i++) {
-					let force = Math.random() * 4 + 5;
+					let force = Math.random() * 5 + 5;
 					let angle = Math.random() * 2 * Math.PI;
 					particles.push({
 						color: pColors[~~(Math.random() * pColors.length)],
@@ -142,7 +142,7 @@ module.exports = function(choices, message) {
 					particles.splice(i, 1);
 				}
 			}
-			let scaleP = Math.min(Math.max((winFrameNum - 20) / 20, 0), 1);
+			let scaleP = Math.min(Math.max((winFrameNum - 10) / 15, 0), 1);
 			if (scaleP) {
 				scaleP *= scaleP * scaleP;
 				ctx.save();
@@ -154,10 +154,8 @@ module.exports = function(choices, message) {
 			}
 		}
 
-		let useFrame = count++ % 2 === 0;
-		if (useFrame) {
-			encoder.addFrame(ctx);
-		}
+		count++;
+		encoder.addFrame(ctx);
 		if (force > .001) {
 			offset += force;
 			force *= friction;
@@ -169,7 +167,7 @@ module.exports = function(choices, message) {
 			}
 			winFrameNum++;
 		}
-		if (winFrameNum >= 50 && !particles.length && useFrame) {
+		if (winFrameNum >= 25 && !particles.length) {
 			encoder.finish();
 		} else {
 			frame(wheel);
