@@ -56,7 +56,7 @@ module.exports = function(choices, message) {
 	let encoder = new GIFEncoder(w, h);
 	encoder.setRepeat(-1);
 	encoder.setDelay(20);
-	encoder.setQuality(30);
+	encoder.setQuality(20);
 
 	let stream = encoder.createReadStream();
 	let file = new Discord.Attachment(stream, 'spin.gif');
@@ -119,7 +119,7 @@ module.exports = function(choices, message) {
 			let opacity = Math.min(winFrameNum / 20, .7);
 			ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
 			ctx.fillRect(0, 0, w, h);
-			if (winFrameNum >= 6 && winFrameNum < 20) {
+			if (winFrameNum >= 5 && winFrameNum < 18) {
 				for (let i = 0, n = Math.random() * 5; i < n; i++) {
 					let force = Math.random() * 7 + 4;
 					// let angle = Math.random() * 2 * Math.PI;
@@ -143,7 +143,7 @@ module.exports = function(choices, message) {
 				ctx.fillStyle = p.color;
 				ctx.arc(p.pos[0], p.pos[1], p.rad, 0, 2 * Math.PI, false);
 				ctx.fill();
-				if (p.pos[1] - p.rad > h || p.pos[0] - p.rad > w || p.pos[0] < p.rad) {
+				if (p.pos[1] - p.rad > h || p.pos[0] - p.rad > w || p.pos[0] < -p.rad || p.pos[1] + p.rad < -20) {
 					particles.splice(i, 1);
 				}
 			}
@@ -172,7 +172,7 @@ module.exports = function(choices, message) {
 			}
 			winFrameNum++;
 		}
-		if (winFrameNum >= 20 && !particles.length) {
+		if (winFrameNum >= 18 && !particles.length) {
 			encoder.finish();
 		} else {
 			return new Promise(resolve => setTimeout(resolve, 0)).then(() => frame(wheel));
