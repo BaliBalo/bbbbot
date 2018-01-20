@@ -41,8 +41,8 @@ module.exports = function(choices, message) {
 	});
 	shuffle(colors);
 
-	let force = Math.random() * 1 + .3;
-	let friction = .95;
+	let force = Math.random() * .8 + .2;
+	let friction = .965;
 	let offset = 0;
 
 	let minSliceSize = Math.PI / 6;
@@ -56,7 +56,7 @@ module.exports = function(choices, message) {
 	let encoder = new GIFEncoder(w, h);
 	encoder.setRepeat(-1);
 	encoder.setDelay(20);
-	encoder.setQuality(20);
+	encoder.setQuality(30);
 
 	let stream = encoder.createReadStream();
 	let file = new Discord.Attachment(stream, 'spin.gif');
@@ -119,11 +119,11 @@ module.exports = function(choices, message) {
 			let opacity = Math.min(winFrameNum / 20, .7);
 			ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
 			ctx.fillRect(0, 0, w, h);
-			if (winFrameNum >= 12 && winFrameNum < 20) {
-				for (let i = 0, n = Math.random() * 8; i < n; i++) {
-					let force = Math.random() * 5 + 3;
+			if (winFrameNum >= 6 && winFrameNum < 20) {
+				for (let i = 0, n = Math.random() * 5; i < n; i++) {
+					let force = Math.random() * 7 + 4;
 					// let angle = Math.random() * 2 * Math.PI;
-					let angle = ((Math.random() - .5) * .6 - .5) * Math.PI;
+					let angle = ((Math.random() - .5) * .4 - .5) * Math.PI;
 					particles.push({
 						color: pColors[~~(Math.random() * pColors.length)],
 						rad: 4 + Math.random() * 6,
