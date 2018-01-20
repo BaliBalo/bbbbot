@@ -56,7 +56,7 @@ module.exports = function(choices, message) {
 	let encoder = new GIFEncoder(w, h);
 	encoder.setRepeat(-1);
 	encoder.setDelay(20);
-	encoder.setQuality(1);
+	encoder.setQuality(20);
 
 	let stream = encoder.createReadStream();
 	encoder.start();
@@ -116,8 +116,8 @@ module.exports = function(choices, message) {
 			ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
 			ctx.fillRect(0, 0, w, h);
 			if (winFrameNum >= 15 && winFrameNum < 20) {
-				for (let i = 0, n = Math.random() * 4; i < n; i++) {
-					let force = Math.random() * 5 + 6;
+				for (let i = 0, n = Math.random() * 8; i < n; i++) {
+					let force = Math.random() * 5 + 5;
 					let angle = Math.random() * 2 * Math.PI;
 					particles.push({
 						color: pColors[~~(Math.random() * pColors.length)],
@@ -138,7 +138,7 @@ module.exports = function(choices, message) {
 				ctx.fillStyle = p.color;
 				ctx.arc(p.pos[0], p.pos[1], p.rad, 0, 2 * Math.PI, false);
 				ctx.fill();
-				if (p.pos[1] - p.rad > h) {
+				if (p.pos[1] - p.rad > h || p.pos[0] - p.rad > w || p.pos[0] < p.rad) {
 					particles.splice(i, 1);
 				}
 			}
