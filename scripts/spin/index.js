@@ -33,6 +33,7 @@ let pColors = [
 
 module.exports = function(choices, message) {
 	if (!choices.length) return;
+	let start = Date.now();
 	let hueOffset = 360 * Math.random();
 	let colors = choices.map((choice, i) => {
 		let hue = hueOffset + i * 360 / choices.length;
@@ -169,6 +170,8 @@ module.exports = function(choices, message) {
 		}
 	}
 	frame(drawWheel());
+
+	console.log('generated gif in ' + ((Date.now() - start) / 1000) + 's');
 
 	return message.reply('', {
 		files: [ new Discord.Attachment(stream, 'spin.gif') ]
