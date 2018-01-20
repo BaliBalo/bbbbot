@@ -112,17 +112,18 @@ module.exports = function(choices, message) {
 		ctx.stroke();
 
 		if (winFrameNum) {
-			let opacity = Math.min(winFrameNum / 30, .7);
+			let opacity = Math.min(winFrameNum / 20, .7);
 			ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
 			ctx.fillRect(0, 0, w, h);
-			if (winFrameNum >= 15 && winFrameNum < 20) {
+			if (winFrameNum >= 14 && winFrameNum < 19) {
 				for (let i = 0, n = Math.random() * 8; i < n; i++) {
 					let force = Math.random() * 5 + 5;
-					let angle = Math.random() * 2 * Math.PI;
+					// let angle = Math.random() * 2 * Math.PI;
+					let angle = ((Math.random() - .5) * .8 - .5) * Math.PI;
 					particles.push({
 						color: pColors[~~(Math.random() * pColors.length)],
 						rad: 4 + Math.random() * 6,
-						pos: [x, y],
+						pos: [x, h],
 						vel: [force * Math.cos(angle), force * Math.sin(angle)]
 					});
 				}
@@ -142,7 +143,7 @@ module.exports = function(choices, message) {
 					particles.splice(i, 1);
 				}
 			}
-			let scaleP = Math.min(Math.max((winFrameNum - 10) / 15, 0), 1);
+			let scaleP = Math.min(Math.max(winFrameNum / 15, 0), 1);
 			if (scaleP) {
 				scaleP *= scaleP * scaleP;
 				ctx.save();
@@ -167,7 +168,7 @@ module.exports = function(choices, message) {
 			}
 			winFrameNum++;
 		}
-		if (winFrameNum >= 25 && !particles.length) {
+		if (winFrameNum >= 20 && !particles.length) {
 			encoder.finish();
 		} else {
 			return new Promise(resolve => setTimeout(resolve, 0)).then(() => frame(wheel));
