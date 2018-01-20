@@ -2,8 +2,8 @@ const Discord = require('discord.js');
 const GIFEncoder = require('gifencoder');
 const Canvas = require('canvas');
 
-let w = 300, h = 270;
-let s = 130;
+let w = 240, h = 220;
+let s = 105;
 let x = s + 5, y = h * .5;
 
 let shuffle = a=>a.map((v,i,j)=>a[a[i]=a[j=0|i+Math.random()*(a.length-i)],j]=v);
@@ -40,8 +40,8 @@ module.exports = function(choices, message) {
 	});
 	shuffle(colors);
 
-	let force = Math.random() * .7 + .1;
-	let friction = .96;
+	let force = Math.random() * .5 + .1;
+	let friction = .98;
 	let offset = 0;
 
 	let minSliceSize = Math.PI / 6;
@@ -55,7 +55,7 @@ module.exports = function(choices, message) {
 	let encoder = new GIFEncoder(w, h);
 	encoder.setRepeat(-1);
 	encoder.setDelay(20);
-	encoder.setQuality(10);
+	encoder.setQuality(6);
 
 	let stream = encoder.createReadStream();
 	encoder.start();
@@ -73,7 +73,7 @@ module.exports = function(choices, message) {
 	function drawWheel() {
 		let wheel = new Canvas(2 * s, 2 * s);
 		let wheelCtx = wheel.getContext('2d');
-		wheelCtx.font = '15px sans-serif';
+		wheelCtx.font = '12px sans-serif';
 		wheelCtx.textBaseline = 'middle';
 		wheelCtx.textAlign = 'center';
 		wheelCtx.save();
@@ -104,50 +104,52 @@ module.exports = function(choices, message) {
 		ctx.strokeStyle = 'black';
 		ctx.beginPath();
 		ctx.moveTo(2 * s, y);
-		ctx.arc(w - 15, y, 10, Math.PI * -.5, Math.PI * .5, false);
+		ctx.arc(w - 12, y, 7, Math.PI * -.5, Math.PI * .5, false);
 		ctx.closePath();
 		ctx.fill();
 		ctx.stroke();
 
-		let opacity = Math.min(winFrameNum / 40, .7);
-		ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
-		ctx.fillRect(0, 0, w, h);
-		if (winFrameNum >= 40 && winFrameNum < 50) {
-			for (let i = 0, n = Math.random() * 4; i < n; i++) {
-				let force = Math.random() * 4 + 5;
-				let angle = Math.random() * 2 * Math.PI;
-				particles.push({
-					color: pColors[~~(Math.random() * pColors.length)],
-					rad: 4 + Math.random() * 6,
-					pos: [x, y],
-					vel: [force * Math.cos(angle), force * Math.sin(angle)]
-				});
+		if (winFrameNum) {
+			let opacity = Math.min(winFrameNum / 40, .7);
+			ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
+			ctx.fillRect(0, 0, w, h);
+			if (winFrameNum >= 40 && winFrameNum < 50) {
+				for (let i = 0, n = Math.random() * 4; i < n; i++) {
+					let force = Math.random() * 4 + 5;
+					let angle = Math.random() * 2 * Math.PI;
+					particles.push({
+						color: pColors[~~(Math.random() * pColors.length)],
+						rad: 4 + Math.random() * 6,
+						pos: [x, y],
+						vel: [force * Math.cos(angle), force * Math.sin(angle)]
+					});
+				}
 			}
-		}
-		for (let i = particles.length; i--;) {
-			let p = particles[i];
-			p.vel[1] += .2;
-			p.vel[0] *= .99;
-			p.vel[1] *= .99;
-			p.pos[0] += p.vel[0];
-			p.pos[1] += p.vel[1];
-			ctx.beginPath();
-			ctx.fillStyle = p.color;
-			ctx.arc(p.pos[0], p.pos[1], p.rad, 0, 2 * Math.PI, false);
-			ctx.fill();
-			if (p.pos[1] - p.rad > h) {
-				particles.splice(i, 1);
+			for (let i = particles.length; i--;) {
+				let p = particles[i];
+				p.vel[1] += .2;
+				p.vel[0] *= .99;
+				p.vel[1] *= .99;
+				p.pos[0] += p.vel[0];
+				p.pos[1] += p.vel[1];
+				ctx.beginPath();
+				ctx.fillStyle = p.color;
+				ctx.arc(p.pos[0], p.pos[1], p.rad, 0, 2 * Math.PI, false);
+				ctx.fill();
+				if (p.pos[1] - p.rad > h) {
+					particles.splice(i, 1);
+				}
 			}
-		}
-		let scaleP = Math.min(Math.max((winFrameNum - 20) / 20, 0), 1);
-		if (scaleP) {
-			scaleP *= scaleP * scaleP;
-			ctx.save();
-			ctx.translate(x, y);
-			ctx.scale(scaleP, scaleP);
-			ctx.fillStyle = 'white';
-			ctx.fillText(won, 0, 0, w - 10);
-			ctx.restore();
+			let scaleP = Math.min(Math.max((winFrameNum - 20) / 20, 0), 1);
+			if (scaleP) {
+				scaleP *= scaleP * scaleP;
+				ctx.save();
+				ctx.translate(x, y);
+				ctx.scale(scaleP, scaleP);
+				ctx.fillStyle = 'white';
+				ctx.fillText(won, 0, 0, w - 10);
+				ctx.restore();
+			}
 		}
 
 		encoder.addFrame(ctx);
