@@ -55,12 +55,13 @@ module.exports = function(choices, message) {
 
 	let encoder = new GIFEncoder(w, h);
 	encoder.setRepeat(-1);
-	encoder.setDelay(20);
+	encoder.setDelay(50);
 	encoder.setQuality(6);
 
 	let stream = encoder.createReadStream();
 	encoder.start();
 
+	let count = 0;
 	let result = new Canvas(w, h);
 	let ctx = result.getContext('2d');
 	ctx.font = '30px sans-serif';
@@ -153,17 +154,22 @@ module.exports = function(choices, message) {
 			}
 		}
 
-		encoder.addFrame(ctx);
+		let useFrame = count++ % 2 === 0;
+		if (useFrame) {
+			encoder.addFrame(ctx);
+		}
 		if (force > .001) {
 			offset += force;
 			force *= friction;
 		} else {
 			if (won === undefined) {
+				console.log('won in ' + ((Date.now() - start) / 1000) + 's (' + count + ')');
+				force = 0;
 				won = choices[~~(dup * choices.length * ((offset + ai * .5) / (2 * Math.PI) % 1)) % choices.length];
 			}
 			winFrameNum++;
 		}
-		if (winFrameNum >= 50 && !particles.length) {
+		if (winFrameNum >= 50 && !particles.length && useFrame) {
 			encoder.finish();
 		} else {
 			frame(wheel);
@@ -171,7 +177,7 @@ module.exports = function(choices, message) {
 	}
 	frame(drawWheel());
 
-	console.log('generated gif in ' + ((Date.now() - start) / 1000) + 's');
+	console.log('generated gif in ' + ((Date.now() - start) / 1000) + 's (' + count + ')');
 
 	return message.reply('', {
 		files: [ new Discord.Attachment(stream, 'spin.gif') ]

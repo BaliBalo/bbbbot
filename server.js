@@ -1,6 +1,7 @@
 const path = require('path');
 const config = require('./config.json');
 const Discord = require('discord.js');
+const discordUtils = require('./utils/discord');
 const client = new Discord.Client();
 
 const spoiler = require('./scripts/spoiler');
@@ -29,7 +30,9 @@ client.on('message', message => {
 		return mixu(message);
 	}
 	if (message.content.startsWith('!spin')) {
-		let options = message.content.slice(5).split(',').map(e => e.trim()).filter(e => e);
+		let options = message.content.slice(5).split(',').map(e => {
+			return discordUtils.getDisplay(message, e.trim());
+		}).filter(e => e);
 		return spin(options, message);
 	}
 

@@ -10,6 +10,7 @@ const Canvas = require('canvas');
 const Image = Canvas.Image;
 const request = require('request-promise-native');
 const twemoji = require('twemoji');
+const discordUtils = require('../../utils/discord');
 
 const customCode = '\\[\\[([^= ]*)=([^\\] ]+)\\]\\]';
 
@@ -206,11 +207,7 @@ module.exports = function(message, content, title) {
 	let imgContent = prepareDrawingTxt(content, message);
 	let imgTitle = prepareDrawingTxt(title, message);
 
-	let textContent = content
-		.replace(/<@!?(1|\d{17,19})>/g, (m, id) => '@' + message.mentions.members.get(id).displayName)
-		.replace(/<#(\d{17,19})>/g, (m, id) => '#' + message.mentions.channels.get(id).name)
-		.replace(/<:([^: ]+):\d+>/g, (m, name) => ':' + name + ':')
-		.replace(new RegExp(customCode, 'g'), '');
+	let textContent = discordUtils.getDisplay(message, content);
 
 	let upload = Promise.resolve();
 	if (shouldSave) {
