@@ -41,7 +41,7 @@ module.exports = function(choices, message) {
 	});
 	shuffle(colors);
 
-	let force = Math.random() * .8 + .15;
+	let force = Math.random() * 1 + .3;
 	let friction = .95;
 	let offset = 0;
 
@@ -53,13 +53,13 @@ module.exports = function(choices, message) {
 	let l = choices.length * dup;
 	let ai = 2 * Math.PI / l;
 
-	let encoder = new GIFEncoder(w, h);
-	encoder.setRepeat(-1);
-	encoder.setDelay(50);
-	encoder.setQuality(1);
-
-	let stream = encoder.createReadStream();
-	encoder.start();
+	// let encoder = new GIFEncoder(w, h);
+	// encoder.setRepeat(-1);
+	// encoder.setDelay(20);
+	// encoder.setQuality(1);
+    //
+	// let stream = encoder.createReadStream();
+	// encoder.start();
 
 	let count = 0;
 	let result = new Canvas(w, h);
@@ -115,9 +115,9 @@ module.exports = function(choices, message) {
 			let opacity = Math.min(winFrameNum / 30, .7);
 			ctx.fillStyle = 'rgba(0, 0, 0, ' + opacity + ')';
 			ctx.fillRect(0, 0, w, h);
-			if (winFrameNum >= 15 && winFrameNum < 25) {
+			if (winFrameNum >= 15 && winFrameNum < 20) {
 				for (let i = 0, n = Math.random() * 4; i < n; i++) {
-					let force = Math.random() * 5 + 5;
+					let force = Math.random() * 5 + 6;
 					let angle = Math.random() * 2 * Math.PI;
 					particles.push({
 						color: pColors[~~(Math.random() * pColors.length)],
@@ -155,7 +155,7 @@ module.exports = function(choices, message) {
 		}
 
 		count++;
-		encoder.addFrame(ctx);
+		// encoder.addFrame(ctx);
 		if (force > .001) {
 			offset += force;
 			force *= friction;
@@ -168,7 +168,7 @@ module.exports = function(choices, message) {
 			winFrameNum++;
 		}
 		if (winFrameNum >= 25 && !particles.length) {
-			encoder.finish();
+			// encoder.finish();
 		} else {
 			frame(wheel);
 		}
@@ -177,7 +177,7 @@ module.exports = function(choices, message) {
 
 	console.log('generated gif in ' + ((Date.now() - start) / 1000) + 's (' + count + ')');
 
-	return message.reply('', {
-		files: [ new Discord.Attachment(stream, 'spin.gif') ]
-	});
+	// return message.reply('', {
+	// 	files: [ new Discord.Attachment(stream, 'spin.gif') ]
+	// });
 }
