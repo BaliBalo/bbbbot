@@ -121,7 +121,7 @@ module.exports = function(choices, message) {
 			ctx.fillRect(0, 0, w, h);
 			if (winFrameNum >= 12 && winFrameNum < 20) {
 				for (let i = 0, n = Math.random() * 8; i < n; i++) {
-					let force = Math.random() * 10 + 6;
+					let force = Math.random() * 5 + 3;
 					// let angle = Math.random() * 2 * Math.PI;
 					let angle = ((Math.random() - .5) * .6 - .5) * Math.PI;
 					particles.push({
@@ -135,8 +135,8 @@ module.exports = function(choices, message) {
 			for (let i = particles.length; i--;) {
 				let p = particles[i];
 				p.vel[1] += .2;
-				p.vel[0] *= .99;
-				p.vel[1] *= .99;
+				// p.vel[0] *= .99;
+				// p.vel[1] *= .99;
 				p.pos[0] += p.vel[0];
 				p.pos[1] += p.vel[1];
 				ctx.beginPath();
@@ -148,7 +148,7 @@ module.exports = function(choices, message) {
 				}
 			}
 			let scaleP = Math.min(Math.max(winFrameNum / 15, 0), 1);
-			if (scaleP) {
+			if (scaleP > .01) {
 				scaleP *= scaleP * scaleP;
 				ctx.save();
 				ctx.translate(x, y);
