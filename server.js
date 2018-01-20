@@ -5,6 +5,7 @@ const client = new Discord.Client();
 
 const spoiler = require('./scripts/spoiler');
 const mixu = require('./scripts/mixu');
+const spin = require('./scripts/spin');
 
 let pad2 = n => ('0' + n).slice(-2);
 let ts = (d = new Date()) => {
@@ -18,14 +19,18 @@ client.on('ready', () => {
 });
 
 client.on('message', message => {
-	if (message.content.startsWith('!mixu')) {
-		return mixu(message);
-	}
 	let spoilerMatch = message.content.match(/^!spoiler(\[([^\]]*)\])? /);
 	if (spoilerMatch) {
 		let title = spoilerMatch[2];
 		let content = message.content.slice(spoilerMatch[0].length).trim();
 		return spoiler(message, content, title);
+	}
+	if (message.content.startsWith('!mixu')) {
+		return mixu(message);
+	}
+	if (message.content.startsWith('!spin')) {
+		let options = message.content.slice(5).split(',').map(e => e.trim());
+		return spin(options, message);
 	}
 
 	// if (message.content === 'ping') {
