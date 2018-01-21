@@ -32,7 +32,7 @@ client.on('message', message => {
 	if (message.content.startsWith('!spin')) {
 		let options = message.content.slice(5).split(',').map(e => {
 			return discordUtils.getDisplay(message, e.trim());
-		}).filter(e => e);
+		});// .filter(e => e);
 		return spin(options, message);
 	}
 
