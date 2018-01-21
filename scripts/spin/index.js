@@ -91,7 +91,7 @@ module.exports = function(choices, message) {
 			wheelCtx.fillStyle = colors[i % choices.length % colors.length];
 			wheelCtx.fill();
 			wheelCtx.fillStyle = 'black';
-			wheelCtx.fillText(choices[i % choices.length], s * .62, 0, s * .7);
+			wheelCtx.fillText(choices[i % choices.length], s * .6, 0, s * .65);
 			wheelCtx.rotate(-ai);
 		}
 		wheelCtx.restore();
