@@ -1,6 +1,9 @@
 const Discord = require('discord.js');
 const GIFEncoder = require('gifencoder');
 const Canvas = require('canvas');
+const Image = Canvas.Image;
+const request = require('request-promise-native');
+const twemoji = require('twemoji');
 
 let w = 240, h = 220;
 let s = 105;
@@ -31,8 +34,106 @@ let pColors = [
 	'rgba(127, 140, 141, 1)'
 ];
 
+const customCode = '\\[\\[([^= ]*)=([^\\] ]+)\\]\\]';
+
+function replaceStandardEmojis(txt) {
+	let imgtags = /<img class="emoji"[^>]* src="([^"]+)"[^>]*\/>/g;
+	return twemoji.parse(txt, icon => '[[icon=https://twemoji.maxcdn.com/2/72x72/'+icon+'.png]]').replace(imgtags, (m, src) => src);
+}
+function fillText(ctx, text, x, y, max, asImage) {
+	let parts = [];
+	let token;
+	while (token = text.match(new RegExp('^(.*?)('+customCode+'|$)'))) {
+		token = token[1] || token[2];
+		if (token) {
+			parts.push(token);
+			text = text.slice(token.length);
+		} else {
+			break;
+		}
+	}
+	let fontSize = parseInt(ctx.font);
+	let partSizes = [];
+	let height = fontSize;
+	parts.forEach(part => {
+		let customCodeMatch = part.match(new RegExp('^'+customCode+'$'));
+		if (customCodeMatch) {
+			if (customCodeMatch[1] === 'icon') {
+				partSizes.push(fontSize * 1.5);
+				height = Math.max(height, fontSize * 1.5);
+			}
+			return;
+		}
+		let metrics = ctx.measureText(part);
+		// m.actualBoundingBoxRight - m.actualBoundingBoxLeft
+		partSizes.push(metrics.width);
+		height = Math.max(height, metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent);
+	});
+	let width = partSizes.reduce((s, e) => s + e);
+	let result = new Canvas(width, height);
+	let tctx = result.getContext('2d');
+	let defaultColor = ctx.fillStyle;
+	tctx.fillStyle = defaultColor;
+	tctx.font = ctx.font;
+	tctx.textAlign = 'left';
+	tctx.textBaseline = 'middle';
+	let pos = 0;
+	let icons = [];
+	parts.forEach((part, i) => {
+		let size = partSizes[i];
+		let customCodeMatch = part.match(new RegExp('^'+customCode+'$'));
+		if (customCodeMatch) {
+			let type = customCodeMatch[1];
+			let value = customCodeMatch[2];
+			if (type === 'icon') {
+				let left = pos;
+				icons.push(request({
+					url: value,
+					encoding: null
+				}).then(src => {
+					let img = new Image();
+					img.src = src;
+					tctx.drawImage(img, left, (height - size) * .5, size, size);
+				}).catch(e => console.log(e)));
+			} else if (type === 'color') {
+				ctx.fillStyle = value === 'reset' ? defaultColor : value;
+			}
+			pos += size;
+			return;
+		}
+		tctx.fillText(part, pos, height * .5);
+		pos += size;
+	});
+	if (asImage) {
+		return Promise.all(icons).then(() => result);
+	}
+	switch (ctx.textBaseline)  {
+		case 'top':    break;
+		case 'middle': y -= height * .5; break;
+		case 'bottom':
+		default:       y -= height;break;
+	}
+	let fw = width;
+	if (max && max < width) fw = max;
+	switch (ctx.textAlign)  {
+		case 'right':
+		case 'start':  break;
+		case 'center': x -= fw * .5; break;
+		case 'right':
+		case 'end':    x -= fw; break;
+	}
+	return Promise.all(icons).then(() => ctx.drawImage(result, 0, 0, width, height, x, y, fw, height));
+	// return Promise.all(icons).then(() => {
+	// 	ctx.beginPath();
+	// 	ctx.rect(x, y, fw, height);
+	// 	ctx.stroke();
+	// });
+}
+
 module.exports = function(choices, message) {
 	if (!choices.length) return;
+	choices = choices.map(replaceStandardEmojis);
+
 	let start = Date.now();
 	let hueOffset = 360 * Math.random();
 	let colors = choices.map((choice, i) => {
@@ -73,8 +174,6 @@ module.exports = function(choices, message) {
 	ctx.textAlign = 'center';
 	let won = undefined;
 	let winFrameNum = 0;
-	let lastWheelFrame = new Canvas(w, h);
-	let lastWheelCtx = lastWheelFrame.getContext('2d');
 	let particles = [];
 	function drawWheel() {
 		let wheel = new Canvas(2 * s, 2 * s);
@@ -84,18 +183,25 @@ module.exports = function(choices, message) {
 		wheelCtx.textAlign = 'center';
 		wheelCtx.save();
 		wheelCtx.translate(s, s);
+		let texts = Promise.resolve();
 		for (let i = 0; i < l; i++) {
-			wheelCtx.beginPath();
-			wheelCtx.moveTo(0, 0);
-			wheelCtx.arc(0, 0, s, -.5 * ai, .5 * ai, false);
-			wheelCtx.fillStyle = colors[i % choices.length % colors.length];
-			wheelCtx.fill();
-			wheelCtx.fillStyle = 'black';
-			wheelCtx.fillText(choices[i % choices.length], s * .6, 0, s * .65);
-			wheelCtx.rotate(-ai);
+			texts = texts.then(() => {
+				if (i) {
+					wheelCtx.rotate(-ai);
+				}
+				wheelCtx.beginPath();
+				wheelCtx.moveTo(0, 0);
+				wheelCtx.arc(0, 0, s, -.5 * ai, .5 * ai, false);
+				wheelCtx.fillStyle = colors[i % choices.length % colors.length];
+				wheelCtx.fill();
+				wheelCtx.fillStyle = 'black';
+				return fillText(wheelCtx, choices[i % choices.length], s * .62, 0, s * .7);
+			});
 		}
-		wheelCtx.restore();
-		return wheel;
+		return texts.then(() => {
+			wheelCtx.restore();
+			return wheel;
+		});
 	}
 	function frame(wheel) {
 		ctx.fillStyle = '#36393e';
@@ -128,7 +234,7 @@ module.exports = function(choices, message) {
 					particles.push({
 						color: pColors[~~(Math.random() * pColors.length)],
 						rad: 4 + Math.random() * 6,
-						pos: [x, h],
+						pos: [w * .5, h],
 						vel: [force * Math.cos(angle), force * Math.sin(angle)]
 					});
 				}
@@ -149,26 +255,31 @@ module.exports = function(choices, message) {
 				}
 			}
 			let scaleP = Math.min(Math.max(winFrameNum / 15, 0), 1);
-			if (scaleP > .01) {
+			if (won && scaleP > .01) {
 				scaleP *= scaleP * scaleP;
 				ctx.save();
-				ctx.translate(x, y);
+				ctx.translate(w * .5, y);
 				ctx.scale(scaleP, scaleP);
-				ctx.fillStyle = 'white';
-				ctx.fillText(won, 0, 0, w - 10);
+				// ctx.fillStyle = 'white';
+				// fillText(ctx, won, 0, 0, w - 10);
+				let wonWidth = Math.min(won.width, w - 10);
+				ctx.drawImage(won, 0, 0, won.width, won.height, wonWidth * -.5, won.height * -.5, wonWidth, won.height);
 				ctx.restore();
 			}
 		}
 
 		count++;
 		encoder.addFrame(ctx);
+		let wait = Promise.resolve();
 		if (force > .001) {
 			offset += force;
 			force *= friction;
 		} else {
 			if (won === undefined) {
 				force = 0;
-				won = choices[~~(dup * choices.length * ((offset + ai * .5) / (2 * Math.PI) % 1)) % choices.length];
+				let wonChoice = choices[~~(dup * choices.length * ((offset + ai * .5) / (2 * Math.PI) % 1)) % choices.length];
+				ctx.fillStyle = 'white';
+				wait = fillText(ctx, wonChoice, 0, 0, w - 10, true).then(drawn => won = drawn);
 			}
 			winFrameNum++;
 		}
@@ -178,9 +289,9 @@ module.exports = function(choices, message) {
 		}
 		if (count % 10 === 0) {
 			// Every few frames, use setTimeout to let the process do other stuff
-			return new Promise(resolve => setTimeout(resolve, 1)).then(() => frame(wheel));
+			wait = wait.then(() => new Promise(resolve => setTimeout(resolve, 1)));
 		}
-		return frame(wheel);
+		return wait.then(() => frame(wheel));
 	}
-	return frame(drawWheel());
+	return drawWheel().then(wheel => frame(wheel));
 }

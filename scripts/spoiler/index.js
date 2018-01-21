@@ -81,7 +81,7 @@ function drawText(ctx, text, options) {
 					let img = new Image();
 					img.src = src;
 					ctx.drawImage(img, left, top, 20, 20);
-				}));
+				}).catch(e => e));
 			} else if (type === 'color') {
 				ctx.fillStyle = value === 'reset' ? defaultColor : value;
 			}
