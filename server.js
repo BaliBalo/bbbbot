@@ -40,7 +40,7 @@ client.on('message', message => {
 			.then(() => message.react('🇨'))
 			.then(() => message.react('🇭'))
 			.then(() => message.react('🇪'))
-			.then(() => message.react('🇭'));
+			.then(() => message.react('🏩'));
 	}
 
 	// if (message.content === 'ping') {
