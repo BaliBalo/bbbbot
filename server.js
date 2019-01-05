@@ -35,6 +35,9 @@ client.on('message', message => {
 		}).filter(e => e);
 		return spin(options, message);
 	}
+	if (message.content.startsWith('!bigcheh')) {
+		return message.channel.send('🇨 🇭 🇪 🇭');
+	}
 
 	// if (message.content === 'ping') {
 	// 	message.reply('pong');
