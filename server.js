@@ -36,7 +36,11 @@ client.on('message', message => {
 		return spin(options, message);
 	}
 	if (message.content.startsWith('!bigcheh')) {
-		return message.channel.send('🇨 🇭 🇪 🇭');
+		return message.channel.send('🇨 🇭 🇪 🇭')
+			.then(() => message.react('🇨'))
+			.then(() => message.react('🇭'))
+			.then(() => message.react('🇪'))
+			.then(() => message.react('🇭'));
 	}
 
 	// if (message.content === 'ping') {
