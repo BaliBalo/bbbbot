@@ -53,7 +53,28 @@ client.login(config.discordToken);
 const express = require('express');
 const app = express();
 
+function membersObject(membersCollection) {
+	return membersCollection.reduce((obj, val, key) => {
+		obj[key] = {
+			id: val.user.id,
+			displayName: val.displayName,
+			roles: val.roles.array().map(role => ({
+				id: role.id,
+				color: role.hexColor,
+				createdAt: role.createdTimestamp,
+				name: role.name
+			})),
+			avatar: val.user.avatarURL,
+			bot: val.user.bot,
+			username: val.user.username,
+			discriminator: val.user.discriminator
+		};
+		return obj;
+	}, {});
+}
+
 app.use('/spoilers', express.static(path.join(__dirname, 'data/spoilers')));
+app.use('/users', (req, res) => res.send(membersObject(client.guilds.get(config.guild).members)));
 
 const server = app.listen(3000, () => {
 	console.log(ts(), 'Server running');
