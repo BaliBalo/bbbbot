@@ -80,23 +80,26 @@ const app = express();
 const ytBanned = new Set();
 
 function getAllUsers() {
-	return client.guilds.get(config.guild).members.reduce((obj, val, key) => {
-		obj[key] = {
-			id: val.user.id,
-			displayName: val.displayName,
-			roles: val.roles.array().map(role => ({
-				id: role.id,
-				color: role.hexColor,
-				createdAt: role.createdTimestamp,
-				name: role.name
-			})),
-			avatar: val.user.avatarURL,
-			bot: val.user.bot,
-			username: val.user.username,
-			discriminator: val.user.discriminator
-		};
-		return obj;
-	}, {});
+	try {
+		return client.guilds.get(config.guild).members.reduce((obj, val, key) => {
+			obj[key] = {
+				id: val.user.id,
+				displayName: val.displayName,
+				roles: val.roles.array().map(role => ({
+					id: role.id,
+					color: role.hexColor,
+					createdAt: role.createdTimestamp,
+					name: role.name
+				})),
+				avatar: val.user.avatarURL,
+				bot: val.user.bot,
+				username: val.user.username,
+				discriminator: val.user.discriminator
+			};
+			return obj;
+		}, {});
+	} catch(e) { console.log('error getting users', e); }
+	return {};
 }
 function getYtUsers() {
 	let all = getAllUsers();
