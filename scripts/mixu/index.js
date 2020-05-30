@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const Canvas = require('canvas');
-const Image = Canvas.Image;
+const { createCanvas, Image } = require('canvas');
 
 const Discord = require('discord.js');
 
@@ -35,7 +34,7 @@ let getImage = new Promise((res, rej) => {
 function scramble() {
 	let order = shuffle([...Array(count * count)].map((e, i) => i));
 	return getImage.then(img => {
-		let canvas = new Canvas(fullSize + (count + 1) * padding, fullSize + (count - 1) * padding);
+		let canvas = createCanvas(fullSize + (count + 1) * padding, fullSize + (count - 1) * padding);
 		let ctx = canvas.getContext('2d');
 		order.forEach((src, dest) => {
 			let sx = src % count, sy = ~~(src / count);
@@ -49,7 +48,7 @@ function scramble() {
 module.exports = function(message) {
 	return scramble().then(png => {
 		message.channel.send(':regional_indicator_m::regional_indicator_i::regional_indicator_x::regional_indicator_u:', {
-			files: [ new Discord.Attachment(png, 'result.png') ]
+			files: [ new Discord.MessageAttachment(png, 'result.png') ]
 		});
 	});
 };

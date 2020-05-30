@@ -34,7 +34,7 @@ client.on('message', message => {
 	}
 	if (message.content.startsWith('!spin')) {
 		let options = message.content.slice(5).split(',').map(e => {
-			return discordUtils.getDisplay(message, e.trim());
+			return discordUtils.getDisplay(message, e.trim(), true);
 		}).filter(e => e);
 		return spin(options, message);
 	}
@@ -48,12 +48,12 @@ client.on('message', message => {
 
 	if (message.content.startsWith('!ytban') && message.author.id === adminId) {
 		[...message.mentions.members.keys()].forEach(ytBanned.add, ytBanned);
-		let smileW = client.emojis.find(emoji => emoji.name === 'smileW');
+		let smileW = client.emojis.cache.find(emoji => emoji.name === 'smileW');
 		message.channel.send('Banned 🔨' + smileW);
 	}
 	if (message.content.startsWith('!ytunban') && message.author.id === adminId) {
 		[...message.mentions.members.keys()].forEach(ytBanned.delete, ytBanned);
-		let kumaPls = client.emojis.find(emoji => emoji.name === 'kumaPls');
+		let kumaPls = client.emojis.cache.find(emoji => emoji.name === 'kumaPls');
 		message.channel.send('eh... ok ' + kumaPls);
 	}
 
@@ -81,7 +81,7 @@ const ytBanned = new Set();
 
 function getAllUsers() {
 	try {
-		return client.guilds.get(config.guild).members.reduce((obj, val, key) => {
+		return client.guilds.cache.get(config.guild).members.cache.reduce((obj, val, key) => {
 			obj[key] = {
 				id: val.user.id,
 				displayName: val.displayName,
@@ -91,7 +91,7 @@ function getAllUsers() {
 					createdAt: role.createdTimestamp,
 					name: role.name
 				})),
-				avatar: val.user.avatarURL,
+				avatar: val.user.avatarURL({ format: 'png' }),
 				bot: val.user.bot,
 				username: val.user.username,
 				discriminator: val.user.discriminator

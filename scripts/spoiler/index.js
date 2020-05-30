@@ -6,8 +6,7 @@ const transList = Object.values(transitions);
 
 const Discord = require('discord.js');
 const GIFEncoder = require('gifencoder');
-const Canvas = require('canvas');
-const Image = Canvas.Image;
+const { createCanvas, Image } = require('canvas');
 const request = require('request-promise-native');
 const twemoji = require('twemoji');
 const discordUtils = require('../../utils/discord');
@@ -103,7 +102,7 @@ function drawText(ctx, text, options) {
 }
 
 function spoilerGif(text, title) {
-	let c = new Canvas(320, 240);
+	let c = createCanvas(320, 240);
 	let ctx = c.getContext('2d');
 
 	let transition;
@@ -118,7 +117,7 @@ function spoilerGif(text, title) {
 
 	title = title || '(spoiler, trou du cul)';
 
-	let cfrom = new Canvas(maxWidth + 2 * padding, maxHeight);
+	let cfrom = createCanvas(maxWidth + 2 * padding, maxHeight);
 	let from = cfrom.getContext('2d');
 	from.fillStyle = '#36393e';
 	from.fillRect(0, 0, cfrom.width, cfrom.height);
@@ -129,7 +128,7 @@ function spoilerGif(text, title) {
 	// 36 for the 'gif' size + 5 extra padding
 	fromData.w = Math.min(fromData.w + 41, maxWidth);
 
-	let cto = new Canvas(maxWidth + 2 * padding, maxHeight);
+	let cto = createCanvas(maxWidth + 2 * padding, maxHeight);
 	let to = cto.getContext('2d');
 	to.fillStyle = '#36393e';
 	to.fillRect(0, 0, cto.width, cto.height);
@@ -176,13 +175,14 @@ function replaceStandardEmojis(txt) {
 	return twemoji.parse(txt, icon => '[[icon=https://twemoji.maxcdn.com/2/72x72/'+icon+'.png]]').replace(imgtags, (m, src) => src);
 }
 
-function prepareDrawingTxt(txt, message) {
+function prepareDrawingText(txt, message) {
 	txt = txt.replace(/<@!?(1|\d{17,19})>/g, (m, id) => {
 		let guildMember = message.mentions.members.get(id);
 		let prefix = '[[color='+guildMember.displayHexColor+']]';
 		let suffix = '[[color=reset]]';
-		if (guildMember.user.avatarURL) {
-			prefix = '[[icon=' + guildMember.user.avatarURL + ']]' + prefix;
+		let avatar = guildMember.user.avatarURL({ format: 'png' });
+		if (avatar) {
+			prefix = '[[icon=' + avatar + ']]' + prefix;
 		}
 		return prefix + '@' + guildMember.displayName + suffix;
 	});
@@ -204,8 +204,8 @@ module.exports = function(message, content, title) {
 		shouldSave = false;
 	}
 
-	let imgContent = prepareDrawingTxt(content, message);
-	let imgTitle = prepareDrawingTxt(title, message);
+	let imgContent = prepareDrawingText(content, message);
+	let imgTitle = prepareDrawingText(title, message);
 
 	let textContent = discordUtils.getDisplay(message, content);
 
@@ -219,7 +219,7 @@ module.exports = function(message, content, title) {
 				pasteUrl && '(version texte: <'+pasteUrl+'>)'
 			].filter(e => e).join(' ');
 			return message.reply(replyMsg, {
-				files: [ new Discord.Attachment(gif, 'spoiler.gif') ]
+				files: [ new Discord.MessageAttachment(gif, 'spoiler.gif') ]
 			});
 		});
 	});

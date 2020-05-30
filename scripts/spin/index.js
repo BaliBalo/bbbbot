@@ -1,7 +1,6 @@
 const Discord = require('discord.js');
 const GIFEncoder = require('gifencoder');
-const Canvas = require('canvas');
-const Image = Canvas.Image;
+const { createCanvas, Image } = require('canvas');
 const request = require('request-promise-native');
 const twemoji = require('twemoji');
 
@@ -70,7 +69,7 @@ function fillText(ctx, text, x, y, max, asImage) {
 		height = Math.max(height, metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent);
 	});
 	let width = partSizes.reduce((s, e) => s + e);
-	let result = new Canvas(width, height);
+	let result = createCanvas(width, height);
 	let tctx = result.getContext('2d');
 	let defaultColor = ctx.fillStyle;
 	tctx.fillStyle = defaultColor;
@@ -111,7 +110,7 @@ function fillText(ctx, text, x, y, max, asImage) {
 		case 'top':    break;
 		case 'middle': y -= height * .5; break;
 		case 'bottom':
-		default:       y -= height;break;
+		default:       y -= height; break;
 	}
 	let fw = width;
 	if (max && max < width) fw = max;
@@ -160,14 +159,14 @@ module.exports = function(choices, message) {
 	encoder.setQuality(20);
 
 	let stream = encoder.createReadStream();
-	let file = new Discord.Attachment(stream, 'spin.gif');
+	let file = new Discord.MessageAttachment(stream, 'spin.gif');
 	message.reply('', {
 		files: [ file ]
 	});
 	encoder.start();
 
 	let count = 0;
-	let result = new Canvas(w, h);
+	let result = createCanvas(w, h);
 	let ctx = result.getContext('2d');
 	ctx.font = '30px sans-serif';
 	ctx.textBaseline = 'middle';
@@ -176,7 +175,7 @@ module.exports = function(choices, message) {
 	let winFrameNum = 0;
 	let particles = [];
 	function drawWheel() {
-		let wheel = new Canvas(2 * s, 2 * s);
+		let wheel = createCanvas(2 * s, 2 * s);
 		let wheelCtx = wheel.getContext('2d');
 		wheelCtx.font = '12px sans-serif';
 		wheelCtx.textBaseline = 'middle';
