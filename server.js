@@ -85,7 +85,7 @@ function getAllUsers() {
 			obj[key] = {
 				id: val.user.id,
 				displayName: val.displayName,
-				roles: val.roles.array().map(role => ({
+				roles: [...val.roles.cache.values()].map(role => ({
 					id: role.id,
 					color: role.hexColor,
 					createdAt: role.createdTimestamp,
